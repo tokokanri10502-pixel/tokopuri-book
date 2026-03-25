@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0d1221; /* deep navy bg */
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(213, 31%, 19%, 1) 0, transparent 50%), 
+      radial-gradient(at 50% 0%, hsla(45, 55%, 54%, 0.05) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(213, 31%, 19%, 1) 0, transparent 50%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-navy-950 font-bold rounded-2xl shadow-lg shadow-gold-900/20 active:scale-95 transition-all;
+  }
+  .btn-secondary {
+    @apply flex items-center justify-center gap-2 px-6 py-3.5 bg-navy-800 border-2 border-slate-700 hover:bg-navy-700 text-slate-100 font-semibold rounded-2xl transition-all active:scale-95;
+  }
+  .card-premium {
+    @apply bg-navy-900/60 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-5 shadow-2xl;
+  }
+}
+
+/* Custom animations */
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}

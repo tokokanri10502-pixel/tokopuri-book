@@ -1,0 +1,183 @@
+﻿
+> book-markers-v2@0.1.0 build
+> next build
+
+  笆ｲ Next.js 14.2.0
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+node.exe : Failed to compile.
+発生場所 行:1 文字:1
++ & "C:\Program Files\nodejs/
+node.exe" "C:\Program Files\n
+odejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (Failed   
+  to compile.:String) [],    
+ RemoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+
+app\layout.tsx
+An error occurred in `next/fo
+nt`.
+
+Error: Cannot find module 'au
+toprefixer'
+Require stack:
+- C:\Users\seisaku00\Desktop\
+Development\book-markers-v2\n
+ode_modules\next\dist\build\w
+ebpack\config\blocks\css\plug
+ins.js
+- C:\Users\seisaku00\Desktop\
+Development\book-markers-v2\n
+ode_modules\next\dist\build\w
+ebpack\config\blocks\css\inde
+x.js
+- C:\Users\seisaku00\Desktop\
+Development\book-markers-v2\n
+ode_modules\next\dist\build\w
+ebpack\config\index.js
+- C:\Users\seisaku00\Desktop\
+Development\book-markers-v2\n
+ode_modules\next\dist\build\w
+ebpack-config.js
+- C:\Users\seisaku00\Desktop\
+Development\book-markers-v2\n
+ode_modules\next\dist\build\w
+ebpack-build\impl.js
+- C:\Users\seisaku00\Desktop\
+Development\book-markers-v2\n
+ode_modules\next\dist\compile
+d\jest-worker\processChild.js
+    at Module.<anonymous> (no
+de:internal/modules/cjs/loade
+r:1456:15)
+    at C:\Users\seisaku00\Des
+ktop\Development\book-markers
+-v2\node_modules\next\dist\se
+rver\require-hook.js:55:36
+    at require.resolve (node:
+internal/modules/helpers:163:
+19)
+    at loadPlugin (C:\Users\s
+eisaku00\Desktop\Development\
+book-markers-v2\node_modules\
+next\dist\build\webpack\confi
+g\blocks\css\plugins.js:49:32
+)
+    at C:\Users\seisaku00\Des
+ktop\Development\book-markers
+-v2\node_modules\next\dist\bu
+ild\webpack\config\blocks\css
+\plugins.js:157:56
+    at Array.map (<anonymous>
+)
+    at getPostCssPlugins (C:\
+Users\seisaku00\Desktop\Devel
+opment\book-markers-v2\node_m
+odules\next\dist\build\webpac
+k\config\blocks\css\plugins.j
+s:157:47)
+    at async C:\Users\seisaku
+00\Desktop\Development\book-m
+arkers-v2\node_modules\next\d
+ist\build\webpack\config\bloc
+ks\css\index.js:124:36
+    at async C:\Users\seisaku
+00\Desktop\Development\book-m
+arkers-v2\node_modules\next\d
+ist\build\webpack\loaders\nex
+t-font-loader\index.js:86:33
+    at async Span.traceAsyncF
+n (C:\Users\seisaku00\Desktop
+\Development\book-markers-v2\
+node_modules\next\dist\trace\
+trace.js:154:20)
+
+app\layout.tsx
+An error occurred in `next/fo
+nt`.
+
+Error: Cannot find module 'au
+toprefixer'
+Require stack:
+- C:\Users\seisaku00\Desktop\
+Development\book-markers-v2\n
+ode_modules\next\dist\build\w
+ebpack\config\blocks\css\plug
+ins.js
+- C:\Users\seisaku00\Desktop\
+Development\book-markers-v2\n
+ode_modules\next\dist\build\w
+ebpack\config\blocks\css\inde
+x.js
+- C:\Users\seisaku00\Desktop\
+Development\book-markers-v2\n
+ode_modules\next\dist\build\w
+ebpack\config\index.js
+- C:\Users\seisaku00\Desktop\
+Development\book-markers-v2\n
+ode_modules\next\dist\build\w
+ebpack-config.js
+- C:\Users\seisaku00\Desktop\
+Development\book-markers-v2\n
+ode_modules\next\dist\build\w
+ebpack-build\impl.js
+- C:\Users\seisaku00\Desktop\
+Development\book-markers-v2\n
+ode_modules\next\dist\compile
+d\jest-worker\processChild.js
+    at Module.<anonymous> (no
+de:internal/modules/cjs/loade
+r:1456:15)
+    at C:\Users\seisaku00\Des
+ktop\Development\book-markers
+-v2\node_modules\next\dist\se
+rver\require-hook.js:55:36
+    at require.resolve (node:
+internal/modules/helpers:163:
+19)
+    at loadPlugin (C:\Users\s
+eisaku00\Desktop\Development\
+book-markers-v2\node_modules\
+next\dist\build\webpack\confi
+g\blocks\css\plugins.js:49:32
+)
+    at C:\Users\seisaku00\Des
+ktop\Development\book-markers
+-v2\node_modules\next\dist\bu
+ild\webpack\config\blocks\css
+\plugins.js:157:56
+    at Array.map (<anonymous>
+)
+    at getPostCssPlugins (C:\
+Users\seisaku00\Desktop\Devel
+opment\book-markers-v2\node_m
+odules\next\dist\build\webpac
+k\config\blocks\css\plugins.j
+s:157:47)
+    at async C:\Users\seisaku
+00\Desktop\Development\book-m
+arkers-v2\node_modules\next\d
+ist\build\webpack\config\bloc
+ks\css\index.js:124:36
+    at async C:\Users\seisaku
+00\Desktop\Development\book-m
+arkers-v2\node_modules\next\d
+ist\build\webpack\loaders\nex
+t-font-loader\index.js:86:33
+    at async Span.traceAsyncF
+n (C:\Users\seisaku00\Desktop
+\Development\book-markers-v2\
+node_modules\next\dist\trace\
+trace.js:154:20)
+
+
+> Build failed because of web
+pack errors
