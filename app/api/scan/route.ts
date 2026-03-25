@@ -26,15 +26,21 @@ export async function POST(req: NextRequest) {
       If you can't find some information, use an empty string. Japanese is preferred for text.
     `;
 
-    // Extract base64 part
-    const base64Data = image.split(",")[1];
-    
+    // Extract base64 part and mimeType from data URL
+    const [header, base64Data] = image.split(",");
+    const mimeTypeMatch = header.match(/data:([^;]+);/);
+    const mimeType = (mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg") as
+      | "image/jpeg"
+      | "image/png"
+      | "image/webp"
+      | "image/heic";
+
     const result = await model.generateContent([
       prompt,
       {
         inlineData: {
           data: base64Data,
-          mimeType: "image/jpeg",
+          mimeType,
         },
       },
     ]);
