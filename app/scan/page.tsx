@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BookStatus } from "@/lib/types";
-import { insertBook } from "@/lib/books";
+import { ConciergeCelebration } from "@/components/ConciergeCelebration";
 
 type ScanResult = {
   title: string;
@@ -39,6 +39,7 @@ export default function ScanPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<BookStatus>("plan");
+  const [celebration, setCelebration] = useState<{ show: boolean; count: number }>({ show: false, count: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startScan = async (base64Image: string) => {
@@ -81,35 +82,58 @@ export default function ScanPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const base64 = ev.target?.result as string;
-        setImage(base64);
-        startScan(base64);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      // 長辺を800pxに縮小してJPEG圧縮
+      const MAX = 800;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const compressed = canvas.toDataURL("image/jpeg", 0.85);
+      URL.revokeObjectURL(objectUrl);
+      setImage(compressed);
+      startScan(compressed);
+    };
+    img.src = objectUrl;
   };
 
   const handleRegister = async () => {
     if (!scanResult) return;
     setIsSaving(true);
     try {
-      await insertBook({
-        title: scanResult.title,
-        author: scanResult.author,
-        publisher: scanResult.publisher,
-        genre: scanResult.genre,
-        isbn: scanResult.isbn,
-        description: scanResult.description,
-        cover_url: scanResult.cover_url,
-        status: selectedStatus,
+      const res = await fetch("/api/books", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: scanResult.title,
+          author: scanResult.author,
+          publisher: scanResult.publisher,
+          genre: scanResult.genre,
+          isbn: scanResult.isbn,
+          description: scanResult.description,
+          cover_url: scanResult.cover_url,
+          status: selectedStatus,
+        }),
       });
-      router.push("/");
-    } catch (error) {
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "登録に失敗しました");
+
+      const countRes = await fetch("/api/books/count");
+      const { count } = await countRes.json();
+      if (count % 5 === 0) {
+        setCelebration({ show: true, count });
+      } else {
+        router.refresh();
+        router.push("/");
+      }
+    } catch (error: any) {
       console.error("Register error:", error);
-      alert("登録に失敗しました。Supabaseの接続設定を確認してください。");
+      alert(`登録に失敗しました: ${error.message}`);
     } finally {
       setIsSaving(false);
     }
@@ -124,6 +148,11 @@ export default function ScanPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-navy-950 text-slate-100">
+      <ConciergeCelebration
+        show={celebration.show}
+        count={celebration.count}
+        onClose={() => { router.refresh(); router.push("/"); }}
+      />
       {/* --- NAV BAR --- */}
       <nav className="p-6 flex items-center justify-between z-10">
         <Link
@@ -259,12 +288,17 @@ export default function ScanPage() {
                     <p className="text-[10px] text-gold-500 font-bold uppercase tracking-[0.2em] mb-2">
                       解析結果
                     </p>
-                    <h2 className="text-xl font-serif font-black text-slate-100 leading-tight mb-2 underline decoration-gold-500/30 decoration-4">
-                      {scanResult.title}
-                    </h2>
-                    <p className="text-slate-300 font-sans font-medium mb-1 drop-shadow-sm text-sm">
-                      著者: {scanResult.author}
-                    </p>
+                    <input
+                      value={scanResult.title}
+                      onChange={(e) => setScanResult({ ...scanResult, title: e.target.value })}
+                      className="w-full bg-transparent text-xl font-serif font-black text-slate-100 leading-tight mb-2 underline decoration-gold-500/30 decoration-4 border-b border-transparent focus:border-gold-500/50 focus:outline-none transition-colors"
+                    />
+                    <input
+                      value={scanResult.author}
+                      onChange={(e) => setScanResult({ ...scanResult, author: e.target.value })}
+                      className="w-full bg-transparent text-slate-300 font-sans font-medium mb-1 text-sm border-b border-transparent focus:border-gold-500/50 focus:outline-none transition-colors"
+                      placeholder="著者名"
+                    />
                     {scanResult.publisher && (
                       <p className="text-slate-500 text-xs font-sans tracking-wider opacity-80">
                         出版社: {scanResult.publisher}

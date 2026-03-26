@@ -1,4 +1,4 @@
-// File: c:\Users\seisaku00\Desktop\Development\book-markers-v2\app\scan\page.tsx
+// File: C:\Users\seisaku00\Desktop\Development\book-markers-v2\app\scan\page.tsx
 import * as entry from '../../../../app/scan/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

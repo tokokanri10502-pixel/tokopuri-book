@@ -2,38 +2,58 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 export async function POST(req: NextRequest) {
   try {
-    const { image } = await req.json(); // base64 image data
+    const { image } = await req.json(); // base64 data URL
 
     if (!image) {
-      return NextResponse.json({ error: "No image data provided" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No image data provided" },
+        { status: 400 }
+      );
     }
-
-    // Prepare content for Gemini
-    const prompt = `
-      Extract information from this book cover image. 
-      Respond ONLY with a JSON object in the following format:
-      {
-        "title": "string",
-        "author": "string",
-        "publisher": "string",
-        "genre": "string",
-        "summary": "string"
-      }
-      If you can't find some information, use an empty string. Japanese is preferred for text.
-    `;
 
     // Extract base64 part and mimeType from data URL
     const [header, base64Data] = image.split(",");
+    if (!base64Data) {
+      return NextResponse.json(
+        { error: "Invalid image data format" },
+        { status: 400 }
+      );
+    }
+
     const mimeTypeMatch = header.match(/data:([^;]+);/);
     const mimeType = (mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg") as
       | "image/jpeg"
       | "image/png"
       | "image/webp"
       | "image/heic";
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+        // @ts-ignore — thinkingConfig は型定義に未反映だが有効なオプション
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    });
+
+    const prompt = `この画像は本の表紙です。画像に写っている文字を注意深く読み取り、以下のJSON形式で情報を抽出してください。
+
+必ず以下のJSON形式のみで応答してください:
+{
+  "title": "本のタイトル（表紙に書かれている通りに）",
+  "author": "著者名（表紙に書かれている通りに）",
+  "publisher": "出版社名（読み取れた場合）",
+  "genre": "ジャンルの推測（小説、ビジネス、技術書、漫画、自己啓発など）",
+  "summary": "この本の簡単な説明（50文字程度）"
+}
+
+注意:
+- 表紙に書かれている文字をそのまま正確に読み取ってください
+- 読み取れない項目は空文字列 "" にしてください
+- 日本語の本は日本語で、英語の本は英語で回答してください`;
 
     const result = await model.generateContent([
       prompt,
@@ -47,29 +67,56 @@ export async function POST(req: NextRequest) {
 
     const response = await result.response;
     const text = response.text();
-    
-    // Clean JSON text (sometimes AI adds ```json ... ```)
-    const jsonStr = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    const data = JSON.parse(jsonStr);
 
-    // Optional: Fetch cover image URL from Google Books API using the title/author
-    let coverUrl = image; // Default to user's photo
+    console.log("Gemini raw response:", text);
+
+    // Parse JSON — responseMimeType should give clean JSON,
+    // but add fallback cleanup just in case
+    let data;
     try {
-       const booksRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(data.title)}+inauthor:${encodeURIComponent(data.author)}&maxResults=1`);
-       const booksData = await booksRes.json();
-       if (booksData.items && booksData.items[0]) {
+      data = JSON.parse(text);
+    } catch {
+      const jsonStr = text
+        .replace(/```json\s*/g, "")
+        .replace(/```\s*/g, "")
+        .trim();
+      data = JSON.parse(jsonStr);
+    }
+
+    // Fetch cover image URL from Google Books API
+    let coverUrl = ""; // base64は保存しない
+    if (data.title) {
+      try {
+        const query = [
+          data.title ? `intitle:${data.title}` : "",
+          data.author ? `inauthor:${data.author}` : "",
+        ]
+          .filter(Boolean)
+          .join("+");
+
+        const booksRes = await fetch(
+          `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=1`
+        );
+        const booksData = await booksRes.json();
+
+        if (booksData.items && booksData.items[0]) {
           const item = booksData.items[0].volumeInfo;
           data.description = item.description || data.summary;
-          coverUrl = item.imageLinks?.thumbnail?.replace("http:", "https:") || coverUrl;
+          coverUrl =
+            item.imageLinks?.thumbnail?.replace("http:", "https:") || coverUrl;
           data.isbn = item.industryIdentifiers?.[0]?.identifier || "";
-       }
-    } catch (e) {
-       console.error("Google Books API error:", e);
+        }
+      } catch (e) {
+        console.error("Google Books API error:", e);
+      }
     }
 
     return NextResponse.json({ ...data, cover_url: coverUrl });
   } catch (error: any) {
-    console.error("Gemini Scan Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Gemini Scan Error:", error?.message || error);
+    return NextResponse.json(
+      { error: error?.message || "スキャンに失敗しました" },
+      { status: 500 }
+    );
   }
 }

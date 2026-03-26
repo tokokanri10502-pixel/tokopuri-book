@@ -684,6 +684,10 @@ video {
 .z-\[100\] {
   z-index: 100;
 }
+.mx-4 {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
 .-mt-10 {
   margin-top: -2.5rem;
 }
@@ -792,9 +796,6 @@ video {
 .h-72 {
   height: 18rem;
 }
-.h-8 {
-  height: 2rem;
-}
 .h-80 {
   height: 20rem;
 }
@@ -833,9 +834,6 @@ video {
 }
 .w-64 {
   width: 16rem;
-}
-.w-8 {
-  width: 2rem;
 }
 .w-full {
   width: 100%;
@@ -937,9 +935,6 @@ video {
 .items-start {
   align-items: flex-start;
 }
-.items-end {
-  align-items: flex-end;
-}
 .items-center {
   align-items: center;
 }
@@ -969,11 +964,6 @@ video {
 }
 .gap-6 {
   gap: 1.5rem;
-}
-.-space-x-3 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 0;
-  margin-right: calc(-0.75rem * var(--tw-space-x-reverse));
-  margin-left: calc(-0.75rem * calc(1 - var(--tw-space-x-reverse)));
 }
 .space-y-2 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-y-reverse: 0;
@@ -1041,6 +1031,9 @@ video {
   border-left-width: 1px;
   border-right-width: 1px;
 }
+.border-b {
+  border-bottom-width: 1px;
+}
 .border-t {
   border-top-width: 1px;
 }
@@ -1104,6 +1097,9 @@ video {
 .border-slate-800\/80 {
   border-color: rgb(30 41 59 / 0.8);
 }
+.border-transparent {
+  border-color: transparent;
+}
 .bg-emerald-400 {
   --tw-bg-opacity: 1;
   background-color: rgb(52 211 153 / var(--tw-bg-opacity, 1));
@@ -1117,10 +1113,6 @@ video {
 }
 .bg-emerald-500\/10 {
   background-color: rgb(16 185 129 / 0.1);
-}
-.bg-gold-400 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(197 159 109 / var(--tw-bg-opacity, 1));
 }
 .bg-gold-400\/10 {
   background-color: rgb(197 159 109 / 0.1);
@@ -1191,6 +1183,9 @@ video {
 }
 .bg-slate-800\/30 {
   background-color: rgb(30 41 59 / 0.3);
+}
+.bg-transparent {
+  background-color: transparent;
 }
 .bg-white\/20 {
   background-color: rgb(255 255 255 / 0.2);
@@ -1322,6 +1317,10 @@ video {
 .py-4 {
   padding-top: 1rem;
   padding-bottom: 1rem;
+}
+.py-6 {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
 }
 .pb-2 {
   padding-bottom: 0.5rem;
@@ -1540,6 +1539,9 @@ video {
 }
 .opacity-90 {
   opacity: 0.9;
+}
+.opacity-\[0\.07\] {
+  opacity: 0.07;
 }
 .shadow-2xl {
   --tw-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
@@ -1821,6 +1823,10 @@ video {
 
 .focus\:border-gold-500\/30:focus {
   border-color: rgb(201 168 76 / 0.3);
+}
+
+.focus\:border-gold-500\/50:focus {
+  border-color: rgb(201 168 76 / 0.5);
 }
 
 .focus\:bg-navy-950:focus {

@@ -1,35 +1,23 @@
-import { supabase } from './supabase';
 import { Book, BookStatus } from './types';
+import { dbSelect, dbInsert, dbUpdate, dbDelete, dbCount } from './supabase';
 
-// 認証なしの場合の固定ユーザーID
 export const DEMO_USER_ID = 'om-user-001';
 
-/** 全書籍を取得 */
 export async function getBooks(): Promise<Book[]> {
-  const { data, error } = await supabase
-    .from('books')
-    .select('*')
-    .eq('user_id', DEMO_USER_ID)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return (data || []) as Book[];
+  return dbSelect<Book>('books', {
+    user_id: `eq.${DEMO_USER_ID}`,
+    order: 'created_at.desc',
+  });
 }
 
-/** IDで1冊取得 */
 export async function getBook(id: string): Promise<Book | null> {
-  const { data, error } = await supabase
-    .from('books')
-    .select('*')
-    .eq('id', id)
-    .eq('user_id', DEMO_USER_ID)
-    .single();
-
-  if (error) return null;
-  return data as Book;
+  const rows = await dbSelect<Book>('books', {
+    id: `eq.${id}`,
+    user_id: `eq.${DEMO_USER_ID}`,
+  });
+  return rows[0] ?? null;
 }
 
-/** 書籍を登録 */
 export async function insertBook(bookData: {
   title: string;
   author: string;
@@ -40,45 +28,28 @@ export async function insertBook(bookData: {
   cover_url: string;
   status: BookStatus;
 }): Promise<Book> {
-  const { data, error } = await supabase
-    .from('books')
-    .insert({
-      ...bookData,
-      user_id: DEMO_USER_ID,
-      updated_at: new Date().toISOString(),
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data as Book;
+  return dbInsert<Book>('books', {
+    ...bookData,
+    user_id: DEMO_USER_ID,
+    updated_at: new Date().toISOString(),
+  });
 }
 
-/** ステータス・評価・メモを更新 */
 export async function updateBook(
   id: string,
-  updates: {
-    status?: BookStatus;
-    review?: string;
-    rating?: number;
-  }
+  updates: { status?: BookStatus; review?: string; rating?: number }
 ): Promise<void> {
-  const { error } = await supabase
-    .from('books')
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('user_id', DEMO_USER_ID);
-
-  if (error) throw error;
+  return dbUpdate(
+    'books',
+    { ...updates, updated_at: new Date().toISOString() },
+    { id, user_id: DEMO_USER_ID }
+  );
 }
 
-/** 書籍を削除 */
 export async function deleteBook(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('books')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', DEMO_USER_ID);
+  return dbDelete('books', { id, user_id: DEMO_USER_ID });
+}
 
-  if (error) throw error;
+export async function getBooksCount(): Promise<number> {
+  return dbCount('books', { user_id: DEMO_USER_ID });
 }
