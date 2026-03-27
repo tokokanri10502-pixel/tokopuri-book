@@ -71,7 +71,7 @@ export default function AnalysisClient({ books }: { books: Book[] }) {
   const readingCount = books.filter((b) => b.status === "reading").length;
 
   return (
-    <div className="flex flex-col pb-24 pt-8">
+    <div className="flex flex-col pt-8">
       {/* --- HEADER --- */}
       <header className="px-6 mb-8 flex items-center justify-between">
         <Link href="/" className="p-2 bg-navy-900 border border-slate-700/50 rounded-2xl transition-colors" style={{ touchAction: "manipulation" }}>
@@ -175,7 +175,7 @@ export default function AnalysisClient({ books }: { books: Book[] }) {
       )}
 
       {/* --- MONTHLY TREND --- */}
-      <section className="px-6 mb-10">
+      <section className="px-6 mb-24">
         <h2 className="text-slate-300 font-serif font-bold text-lg mb-6 flex items-center gap-3">
           <TrendingUp size={20} className="text-gold-500" />
           月次の推移（直近6ヶ月）
