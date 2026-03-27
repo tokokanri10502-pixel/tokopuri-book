@@ -22,7 +22,9 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // getSession()はローカルのクッキーを読むだけ（ネットワーク通信なし）→ 高速
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
 
   // 未ログインなら /login へリダイレクト
   if (!user && !request.nextUrl.pathname.startsWith("/login") && !request.nextUrl.pathname.startsWith("/auth")) {
