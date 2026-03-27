@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="90" fill="#0f1624"/>
+
+  <!-- Subtle glow behind book -->
+  <ellipse cx="256" cy="270" rx="160" ry="100" fill="#c9a84c" opacity="0.07"/>
+
+  <!-- Left page of open book -->
+  <path d="M256 155 L105 188 L105 355 L256 322 Z" fill="#d4a843" opacity="0.92"/>
+  <!-- Left page shadow/depth -->
+  <path d="M256 155 L105 188 L105 200 L256 167 Z" fill="#a07828" opacity="0.5"/>
+
+  <!-- Right page of open book -->
+  <path d="M256 155 L407 188 L407 355 L256 322 Z" fill="#e8c96d" opacity="0.95"/>
+  <!-- Right page shadow/depth -->
+  <path d="M256 155 L407 188 L407 200 L256 167 Z" fill="#c9a843" opacity="0.5"/>
+
+  <!-- Book spine center line -->
+  <path d="M256 155 L256 322" stroke="#7a5a10" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Curved bottom (book base) -->
+  <path d="M105 355 Q256 375 407 355 L407 362 Q256 385 105 362 Z" fill="#8b6914" opacity="0.6"/>
+
+  <!-- Lines on left page -->
+  <line x1="128" y1="232" x2="238" y2="213" stroke="#7a5a10" stroke-width="3.5" stroke-linecap="round" opacity="0.65"/>
+  <line x1="128" y1="258" x2="238" y2="239" stroke="#7a5a10" stroke-width="3.5" stroke-linecap="round" opacity="0.65"/>
+  <line x1="128" y1="284" x2="238" y2="265" stroke="#7a5a10" stroke-width="3.5" stroke-linecap="round" opacity="0.65"/>
+  <line x1="128" y1="310" x2="238" y2="291" stroke="#7a5a10" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/>
+
+  <!-- Lines on right page -->
+  <line x1="274" y1="213" x2="384" y2="232" stroke="#a07828" stroke-width="3.5" stroke-linecap="round" opacity="0.55"/>
+  <line x1="274" y1="239" x2="384" y2="258" stroke="#a07828" stroke-width="3.5" stroke-linecap="round" opacity="0.55"/>
+  <line x1="274" y1="265" x2="384" y2="284" stroke="#a07828" stroke-width="3.5" stroke-linecap="round" opacity="0.55"/>
+  <line x1="274" y1="291" x2="384" y2="310" stroke="#a07828" stroke-width="2.5" stroke-linecap="round" opacity="0.35"/>
+
+  <!-- Bookmark ribbon on right page -->
+  <polygon points="358,183 382,183 382,248 370,232 358,248" fill="#c0392b" opacity="0.9"/>
+  <polygon points="358,183 382,183 382,192 358,192" fill="#e74c3c" opacity="0.9"/>
+
+  <!-- TOKO text -->
+  <text
+    x="256"
+    y="448"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="68"
+    font-weight="bold"
+    fill="#c9a84c"
+    text-anchor="middle"
+    letter-spacing="12"
+  >TOKO</text>
+
+  <!-- Decorative line under book -->
+  <line x1="140" y1="390" x2="372" y2="390" stroke="#c9a84c" stroke-width="1.5" opacity="0.4"/>
+</svg>

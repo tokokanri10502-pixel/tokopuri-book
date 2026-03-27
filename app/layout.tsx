@@ -21,9 +21,18 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "BOOK MEMORIES — 撮るだけ登録、AIと育む体験",
   description: "AIによる表紙スキャンで、読書を習慣化し、記録を楽に残せるパーソナルライブラリ。",
+  manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
+    title: "BOOK MEMORIES",
   },
 };
 
