@@ -23,7 +23,7 @@ export default function LoginPage() {
     });
     setLoading(false);
     if (error) {
-      setError("メールの送信に失敗しました。再度お試しください。");
+      setError(`送信失敗: ${error.message}`);
     } else {
       setSent(true);
     }
