@@ -25,7 +25,7 @@ export default function BookListClient({ books }: { books: Book[] }) {
   );
 
   return (
-    <div className="flex flex-col min-h-screen pb-32 pt-8">
+    <div className="flex flex-col pb-24 pt-8">
       {/* --- HEADER --- */}
       <header className="px-6 mb-8 relative overflow-hidden rounded-3xl mx-4 py-6">
         {/* Book silhouette background */}

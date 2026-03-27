@@ -65,7 +65,7 @@ export default function BookDetailClient({ book: initialBook }: { book: Book }) 
   };
 
   return (
-    <div className="flex flex-col min-h-screen pb-20 pt-8 bg-navy-950">
+    <div className="flex flex-col pb-20 pt-8 bg-navy-950">
       {/* --- HEADER --- */}
       <header className="px-6 mb-8 flex items-center justify-between">
         <button

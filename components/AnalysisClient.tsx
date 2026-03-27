@@ -71,7 +71,7 @@ export default function AnalysisClient({ books }: { books: Book[] }) {
   const readingCount = books.filter((b) => b.status === "reading").length;
 
   return (
-    <div className="flex flex-col min-h-screen pb-32 pt-8">
+    <div className="flex flex-col pb-24 pt-8">
       {/* --- HEADER --- */}
       <header className="px-6 mb-8 flex items-center justify-between">
         <Link href="/" className="p-2 bg-navy-900 border border-slate-700/50 rounded-2xl transition-colors" style={{ touchAction: "manipulation" }}>

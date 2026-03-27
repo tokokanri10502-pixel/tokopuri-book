@@ -44,7 +44,7 @@ export default function RootLayout({
   return (
     <html lang="ja" className={`${inter.variable} ${notoSerifJP.variable}`}>
       <body className="bg-navy-900 text-slate-100 min-h-[100dvh] flex flex-col items-center">
-        <main className="w-full max-w-md min-h-screen bg-navy-950/50 shadow-2xl relative border-x border-slate-800/50 overflow-hidden">
+        <main className="w-full max-w-md bg-navy-950/50 shadow-2xl relative border-x border-slate-800/50 overflow-hidden">
           {children}
         </main>
       </body>
