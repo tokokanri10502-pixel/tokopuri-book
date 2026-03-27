@@ -8,7 +8,7 @@ type Step = "email" | "code" | "success";
 export default function LoginPage() {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [code, setCode] = useState(["", "", "", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -37,11 +37,11 @@ export default function LoginPage() {
     const newCode = [...code];
     newCode[index] = digit;
     setCode(newCode);
-    if (digit && index < 5) {
+    if (digit && index < 7) {
       inputRefs.current[index + 1]?.focus();
     }
-    // 6桁揃ったら自動送信
-    if (newCode.every((d) => d !== "") && newCode.join("").length === 6) {
+    // 8桁揃ったら自動送信
+    if (newCode.every((d) => d !== "") && newCode.join("").length === 8) {
       handleVerify(newCode.join(""));
     }
   };
@@ -64,7 +64,7 @@ export default function LoginPage() {
     setLoading(false);
     if (error) {
       setError("コードが正しくありません。再度お試しください。");
-      setCode(["", "", "", "", "", ""]);
+      setCode(["", "", "", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     } else {
       setStep("success");
@@ -96,7 +96,7 @@ export default function LoginPage() {
         {step === "email" && (
           <>
             <p className="text-slate-400 text-sm text-center">
-              メールアドレスに6桁のコードを送ります
+              メールアドレスに8桁のコードを送ります
             </p>
             <input
               type="email"
@@ -123,12 +123,12 @@ export default function LoginPage() {
               <p className="text-slate-100 font-bold text-lg">メールを確認してください</p>
               <p className="text-slate-400 text-sm mt-1">
                 <span className="text-gold-400">{email}</span> に<br />
-                6桁のコードを送りました
+                8桁のコードを送りました
               </p>
             </div>
 
-            {/* 6桁入力 */}
-            <div className="flex gap-2">
+            {/* 8桁入力 */}
+            <div className="flex gap-1.5">
               {code.map((digit, i) => (
                 <input
                   key={i}
@@ -139,7 +139,7 @@ export default function LoginPage() {
                   value={digit}
                   onChange={(e) => handleCodeChange(i, e.target.value)}
                   onKeyDown={(e) => handleCodeKeyDown(i, e)}
-                  className="w-11 h-14 bg-navy-900 border border-slate-700 rounded-xl text-slate-100 text-xl font-bold text-center focus:outline-none focus:border-gold-500 focus:bg-navy-800"
+                  className="w-9 h-12 bg-navy-900 border border-slate-700 rounded-xl text-slate-100 text-lg font-bold text-center focus:outline-none focus:border-gold-500 focus:bg-navy-800"
                   autoFocus={i === 0}
                 />
               ))}
@@ -150,7 +150,7 @@ export default function LoginPage() {
             )}
 
             <button
-              onClick={() => { setStep("email"); setCode(["","","","","",""]); setError(""); }}
+              onClick={() => { setStep("email"); setCode(["","","","","","","",""]); setError(""); }}
               className="text-slate-500 text-sm"
             >
               メールアドレスを変更する
