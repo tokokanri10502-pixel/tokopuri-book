@@ -5,7 +5,9 @@ import Link from "next/link";
 
 export default async function BookDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  // ミドルウェアで認証済みのため getSession()（クッキー読み取り）で十分、getUser() より高速
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   const book = user ? await getBook(params.id, user.id) : null;
 
   if (!book) {
