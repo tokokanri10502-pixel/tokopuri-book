@@ -42,6 +42,7 @@ export default function BookDetailClient({ book: initialBook }: { book: Book }) 
       });
       if (!res.ok) throw new Error("保存に失敗しました");
       setBook({ ...book, status, rating, review });
+      router.refresh();
       alert("保存しました。");
     } catch (error) {
       console.error("Save error:", error);
