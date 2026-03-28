@@ -306,19 +306,21 @@ export default function ScanPage() {
                     <input
                       value={scanResult.author}
                       onChange={(e) => setScanResult({ ...scanResult, author: e.target.value })}
-                      className="w-full bg-transparent text-slate-300 font-sans font-medium mb-1 text-sm border-b border-transparent focus:border-gold-500/50 focus:outline-none transition-colors"
+                      className="w-full bg-transparent text-slate-300 font-sans font-medium mb-2 text-sm border-b border-transparent focus:border-gold-500/50 focus:outline-none transition-colors"
                       placeholder="著者名"
                     />
-                    {scanResult.publisher && (
-                      <p className="text-slate-500 text-xs font-sans tracking-wider opacity-80">
-                        出版社: {scanResult.publisher}
-                      </p>
-                    )}
-                    {scanResult.genre && (
-                      <p className="text-slate-500 text-xs font-sans tracking-wider opacity-80 mt-0.5">
-                        ジャンル: {scanResult.genre}
-                      </p>
-                    )}
+                    <input
+                      value={scanResult.publisher ?? ""}
+                      onChange={(e) => setScanResult({ ...scanResult, publisher: e.target.value })}
+                      className="w-full bg-transparent text-slate-400 font-sans text-xs border-b border-transparent focus:border-gold-500/50 focus:outline-none transition-colors mb-1"
+                      placeholder="出版社"
+                    />
+                    <input
+                      value={scanResult.genre ?? ""}
+                      onChange={(e) => setScanResult({ ...scanResult, genre: e.target.value })}
+                      className="w-full bg-transparent text-slate-400 font-sans text-xs border-b border-transparent focus:border-gold-500/50 focus:outline-none transition-colors"
+                      placeholder="ジャンル"
+                    />
                   </div>
                 </div>
 
