@@ -17,6 +17,7 @@ import {
   ArrowUpDown,
   LayoutList,
   LayoutGrid,
+  HelpCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -102,13 +103,18 @@ export default function BookListClient({ books }: { books: Book[] }) {
           <rect x="0" y="106" width="400" height="6" rx="1" fill="#C9A84C" />
         </svg>
 
-        <div className="relative z-10">
-          <h2 className="text-slate-400 text-sm font-medium tracking-widest uppercase mb-1 drop-shadow-sm font-sans">
-            Personal Library
-          </h2>
-          <h1 className="text-3xl font-serif font-bold text-slate-50 drop-shadow-md tracking-tight">
-            BOOK <span className="text-gold-500">MEMORIES</span>
-          </h1>
+        <div className="relative z-10 flex items-start justify-between">
+          <div>
+            <h2 className="text-slate-400 text-sm font-medium tracking-widest uppercase mb-1 drop-shadow-sm font-sans">
+              Personal Library
+            </h2>
+            <h1 className="text-3xl font-serif font-bold text-slate-50 drop-shadow-md tracking-tight">
+              BOOK <span className="text-gold-500">MEMORIES</span>
+            </h1>
+          </div>
+          <Link href="/help" className="p-2 bg-navy-950/40 border border-slate-700/40 rounded-2xl text-slate-500 hover:text-gold-500 transition-colors" style={{ touchAction: "manipulation" }}>
+            <HelpCircle size={18} />
+          </Link>
         </div>
       </header>
 
