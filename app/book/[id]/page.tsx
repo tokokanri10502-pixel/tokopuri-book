@@ -1,4 +1,3 @@
-import { getBook } from "@/lib/books";
 import { createClient } from "@/lib/supabase-server";
 import BookDetailClient from "@/components/BookDetailClient";
 import Link from "next/link";
@@ -8,7 +7,14 @@ export default async function BookDetailPage({ params }: { params: { id: string 
   // ミドルウェアで認証済みのため getSession()（クッキー読み取り）で十分、getUser() より高速
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user ?? null;
-  const book = user ? await getBook(params.id, user.id) : null;
+  const book = user
+    ? (await supabase
+        .from("books")
+        .select("*")
+        .eq("id", params.id)
+        .eq("user_id", user.id)
+        .single()).data
+    : null;
 
   if (!book) {
     return (
