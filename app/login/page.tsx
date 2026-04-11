@@ -120,7 +120,7 @@ export default function LoginPage() {
             key={stepChar.gif}
             src={stepChar.gif}
             alt="トコプリ"
-            className="w-28 h-28 object-contain drop-shadow-lg"
+            className="w-44 h-44 object-contain drop-shadow-lg"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1, y: [0, -6, 0] }}
             exit={{ scale: 0.8, opacity: 0 }}
