@@ -81,14 +81,14 @@ async function generateIcon(size, filename) {
     .toBuffer();
 
   // ③ キャラクター（白背景除去 + trim済み）
-  const charArea = Math.round(size * 0.72);   // テキスト2行分の余白を残す
+  const charArea = Math.round(size * 0.62);   // 少し小さく
   const charTop  = Math.round(size * 0.02);
   const charLeft = Math.round((size - charArea) / 2);
   const charBuffer = await loadCharWithoutBg(charArea);
 
-  // ④ テキストSVG（2行: とこぷり / ブック）
+  // ④ テキストSVG（2行: とこぷり / ブック）同じサイズ
   const fs1 = Math.round(size * 0.115);
-  const fs2 = Math.round(size * 0.098);
+  const fs2 = Math.round(size * 0.115);  // ブックもとこぷりと同じ大きさ
   const ty1 = Math.round(size * 0.845);
   const ty2 = Math.round(size * 0.965);
   const cx  = Math.round(size / 2);
