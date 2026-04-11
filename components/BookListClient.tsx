@@ -17,7 +17,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Book, BookStatus } from "@/lib/types";
-import { CharacterIdle } from "@/components/CharacterAnimation";
 
 type SortKey = "newest" | "oldest" | "title";
 
@@ -80,7 +79,7 @@ export default function BookListClient({ books }: { books: Book[] }) {
           <img
             src="/characters/tokopuri_back.gif"
             alt="トコプリ"
-            className="w-14 h-14 object-contain flex-shrink-0"
+            className="w-24 h-24 object-contain flex-shrink-0"
           />
           <div>
             <p className="font-rounded font-bold text-tokopuri-black text-sm">
@@ -235,9 +234,6 @@ export default function BookListClient({ books }: { books: Book[] }) {
           )}
         </AnimatePresence>
       </section>
-
-      {/* ---- トコプリ待機アニメ ---- */}
-      <CharacterIdle />
 
       {/* ---- スキャンボタン（FAB）---- */}
       <Link href="/scan" className="fixed bottom-6 right-5 z-40">
