@@ -4,362 +4,297 @@ import React, { useState, useMemo } from "react";
 import {
   Camera,
   BookOpen,
-  Library,
-  Sparkles,
-  ChevronRight,
-  Plus,
-  BarChart3,
   CheckCircle2,
   Clock,
-  Bookmark,
   Search,
   X,
-  ArrowUpDown,
-  LayoutList,
-  LayoutGrid,
+  BarChart3,
+  ChevronRight,
+  Plus,
+  Bookmark,
   HelpCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Book, BookStatus } from "@/lib/types";
+import { CharacterIdle } from "@/components/CharacterAnimation";
 
-type SortKey = "newest" | "oldest" | "title" | "rating";
+type SortKey = "newest" | "oldest" | "title";
 
 export default function BookListClient({ books }: { books: Book[] }) {
   const [filter, setFilter] = useState<BookStatus | "all">("all");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("newest");
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   const filteredBooks = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    const q = search.trim().toLowerCase();
     return books
       .filter((b) => filter === "all" || b.status === filter)
       .filter(
         (b) =>
-          !query ||
-          b.title.toLowerCase().includes(query) ||
-          b.author.toLowerCase().includes(query)
+          !q ||
+          b.title.toLowerCase().includes(q) ||
+          b.author.toLowerCase().includes(q)
       )
       .sort((a, b) => {
         if (sort === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         if (sort === "oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        if (sort === "title") return a.title.localeCompare(b.title, "ja");
-        if (sort === "rating") return (b.rating ?? 0) - (a.rating ?? 0);
+        if (sort === "title")  return a.title.localeCompare(b.title, "ja");
         return 0;
       });
   }, [books, filter, search, sort]);
 
-  return (
-    <div className="flex flex-col pb-24 pt-8">
-      {/* --- HEADER --- */}
-      <header className="px-6 mb-8 relative overflow-hidden rounded-3xl mx-4 py-6">
-        {/* Book silhouette background */}
-        <svg
-          className="absolute inset-0 w-full h-full opacity-[0.07] pointer-events-none"
-          viewBox="0 0 400 120"
-          preserveAspectRatio="xMidYMid slice"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* 本1 (細め・高い) */}
-          <rect x="20" y="18" width="22" height="90" rx="2" fill="#C9A84C" />
-          <rect x="21" y="18" width="3" height="90" fill="#fff" fillOpacity="0.15" />
-          {/* 本2 (太め) */}
-          <rect x="46" y="30" width="30" height="78" rx="2" fill="#C9A84C" />
-          <rect x="47" y="30" width="4" height="78" fill="#fff" fillOpacity="0.15" />
-          {/* 本3 (中) */}
-          <rect x="80" y="22" width="20" height="86" rx="2" fill="#C9A84C" />
-          <rect x="81" y="22" width="3" height="86" fill="#fff" fillOpacity="0.15" />
-          {/* 本4 (横倒し・台) */}
-          <rect x="104" y="88" width="44" height="18" rx="2" fill="#C9A84C" />
-          {/* 本5 (横倒しの上に立ってる) */}
-          <rect x="110" y="38" width="18" height="50" rx="2" fill="#C9A84C" />
-          <rect x="111" y="38" width="3" height="50" fill="#fff" fillOpacity="0.15" />
-          <rect x="130" y="44" width="14" height="44" rx="2" fill="#C9A84C" />
-          {/* 本6 */}
-          <rect x="160" y="26" width="24" height="82" rx="2" fill="#C9A84C" />
-          <rect x="161" y="26" width="4" height="82" fill="#fff" fillOpacity="0.15" />
-          {/* 本7 (細め) */}
-          <rect x="188" y="34" width="16" height="74" rx="2" fill="#C9A84C" />
-          {/* 本8 (傾いてる感) */}
-          <rect x="208" y="20" width="26" height="88" rx="2" fill="#C9A84C" />
-          <rect x="209" y="20" width="4" height="88" fill="#fff" fillOpacity="0.15" />
-          {/* 本9 */}
-          <rect x="238" y="32" width="18" height="76" rx="2" fill="#C9A84C" />
-          {/* 本10 */}
-          <rect x="260" y="16" width="28" height="92" rx="2" fill="#C9A84C" />
-          <rect x="261" y="16" width="5" height="92" fill="#fff" fillOpacity="0.15" />
-          {/* 本11 */}
-          <rect x="292" y="28" width="20" height="80" rx="2" fill="#C9A84C" />
-          {/* 本12 */}
-          <rect x="316" y="22" width="24" height="86" rx="2" fill="#C9A84C" />
-          <rect x="317" y="22" width="4" height="86" fill="#fff" fillOpacity="0.15" />
-          {/* 本13 */}
-          <rect x="344" y="36" width="16" height="72" rx="2" fill="#C9A84C" />
-          {/* 本14 */}
-          <rect x="364" y="20" width="28" height="88" rx="2" fill="#C9A84C" />
-          <rect x="365" y="20" width="5" height="88" fill="#fff" fillOpacity="0.15" />
-          {/* 棚の底板 */}
-          <rect x="0" y="106" width="400" height="6" rx="1" fill="#C9A84C" />
-        </svg>
+  const doneCount = books.filter((b) => b.status === "done").length;
 
-        <div className="relative z-10 flex items-start justify-between">
+  return (
+    <div className="flex flex-col pb-28 min-h-screen bg-tokopuri-cream">
+
+      {/* ---- ヘッダー ---- */}
+      <header className="px-5 pt-8 pb-4">
+        <div className="flex items-center justify-between mb-1">
           <div>
-            <h2 className="text-slate-400 text-sm font-medium tracking-widest uppercase mb-1 drop-shadow-sm font-sans">
-              Personal Library
-            </h2>
-            <h1 className="text-3xl font-serif font-bold text-slate-50 drop-shadow-md tracking-tight">
-              BOOK <span className="text-gold-500">MEMORIES</span>
+            <p className="text-tokopuri-magenta font-rounded font-bold text-xs tracking-widest uppercase">
+              とこぷりブック
+            </p>
+            <h1 className="text-3xl font-rounded font-black text-tokopuri-black leading-tight">
+              ほんだな
+              <span className="text-tokopuri-yellow">📚</span>
             </h1>
           </div>
-          <Link href="/help" className="p-2 bg-navy-950/40 border border-slate-700/40 rounded-2xl text-slate-500 hover:text-gold-500 transition-colors" style={{ touchAction: "manipulation" }}>
-            <HelpCircle size={18} />
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/help" className="flex flex-col items-center gap-0.5 p-2">
+              <HelpCircle size={22} className="text-tokopuri-black/40" />
+              <span className="text-[9px] font-rounded font-bold text-tokopuri-black/40">つかいかた</span>
+            </Link>
+            <Link href="/analysis" className="flex flex-col items-center gap-0.5 p-2">
+              <BarChart3 size={22} className="text-tokopuri-cyan" />
+              <span className="text-[9px] font-rounded font-bold text-tokopuri-cyan">きろく</span>
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* --- STATS SUMMARY --- */}
-      <section className="px-6 grid grid-cols-4 gap-3 mb-10">
+      {/* ---- よんだ冊数バナー ---- */}
+      <section className="px-5 mb-5">
+        <div className="rounded-4xl bg-tokopuri-yellow/20 border-2 border-tokopuri-yellow px-5 py-4 flex items-center gap-4">
+          <img
+            src="/characters/tokopuri_back.gif"
+            alt="トコプリ"
+            className="w-14 h-14 object-contain flex-shrink-0"
+          />
+          <div>
+            <p className="font-rounded font-bold text-tokopuri-black text-sm">
+              {doneCount === 0
+                ? "さいしょの1さつを よもう！ほわ。"
+                : `${doneCount}さつ よみました！ほわ。`}
+            </p>
+            {doneCount > 0 && (
+              <p className="font-rounded text-tokopuri-black/50 text-xs mt-0.5">
+                つぎは {Math.ceil(doneCount / 3) * 3} さつ めざそう！
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ---- 統計カード ---- */}
+      <section className="px-5 grid grid-cols-3 gap-3 mb-6">
         <StatsCard
-          icon={<Library size={18} />}
-          count={books.length}
-          label="合計"
-          color="bg-slate-700/30"
-        />
-        <StatsCard
-          icon={<BookOpen size={18} />}
-          count={books.filter((b) => b.status === "reading").length}
-          label="読書中"
-          color="bg-emerald-500/10 text-emerald-400"
-        />
-        <StatsCard
-          icon={<CheckCircle2 size={18} />}
+          icon={<CheckCircle2 size={20} />}
           count={books.filter((b) => b.status === "done").length}
-          label="読了"
-          color="bg-gold-500/10 text-gold-500"
+          label="よんだ"
+          bg="bg-tokopuri-yellow/20"
+          iconColor="text-tokopuri-yellow"
         />
         <StatsCard
-          icon={<Clock size={18} />}
+          icon={<BookOpen size={20} />}
+          count={books.filter((b) => b.status === "reading").length}
+          label="よんでる"
+          bg="bg-tokopuri-cyan/15"
+          iconColor="text-tokopuri-cyan"
+        />
+        <StatsCard
+          icon={<Clock size={20} />}
           count={books.filter((b) => b.status === "plan").length}
-          label="積読"
-          color="bg-slate-800/30"
+          label="よみたい"
+          bg="bg-tokopuri-magenta/10"
+          iconColor="text-tokopuri-magenta"
         />
       </section>
 
-      {/* --- AI CONCIERGE MESSAGE --- */}
+      {/* ---- ウェルカムメッセージ（初回）---- */}
       {books.length === 0 && (
-        <section className="px-6 mb-10">
+        <section className="px-5 mb-6">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="card-premium relative overflow-hidden group border-gold-500/20 shadow-gold-900/10"
+            className="card-kids text-center py-8"
           >
-            <div className="absolute -top-12 -right-12 w-24 h-24 bg-gold-500/10 rounded-full blur-3xl group-hover:bg-gold-500/20 transition-all duration-700"></div>
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-gradient-to-br from-gold-400 to-gold-600 rounded-2xl shadow-lg ring-4 ring-gold-500/10 animate-float">
-                <Sparkles size={22} className="text-navy-900" />
-              </div>
-              <div>
-                <p className="text-gold-400 text-xs font-bold font-sans uppercase tracking-widest mb-1.5 opacity-80">
-                  Welcome to BOOK MEMORIES
-                </p>
-                <h3 className="text-slate-100 font-serif font-semibold text-lg leading-snug mb-2">
-                  ようこそ、あなたの書斎へ。
-                </h3>
-                <p className="text-slate-400 text-sm leading-relaxed max-w-[280px]">
-                  まずは右下のカメラから、お気に入りの一冊をスキャンして記録を始めてみましょう。
-                </p>
-              </div>
-            </div>
+            <img
+              src="/characters/tokopuri_wink.gif"
+              alt="トコプリ"
+              className="w-24 h-24 object-contain mx-auto mb-4"
+            />
+            <p className="font-rounded font-black text-xl text-tokopuri-black mb-2">
+              よんだ本をきろくしよう！
+            </p>
+            <p className="font-rounded text-tokopuri-black/60 text-sm leading-relaxed">
+              みぎしたのカメラボタンをおして<br />
+              えほんのひょうしをさつえいしてね。
+            </p>
           </motion.div>
         </section>
       )}
 
-      {/* --- FILTER TABS --- */}
-      <section className="px-6 mb-4">
-        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
-          <FilterTab active={filter === "all"} onClick={() => setFilter("all")} label="すべて" />
-          <FilterTab active={filter === "reading"} onClick={() => setFilter("reading")} label="読書中" />
-          <FilterTab active={filter === "done"} onClick={() => setFilter("done")} label="読了済" />
-          <FilterTab active={filter === "plan"} onClick={() => setFilter("plan")} label="積読" />
+      {/* ---- フィルタータブ ---- */}
+      <section className="px-5 mb-3">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          <FilterTab active={filter === "all"}     onClick={() => setFilter("all")}     label="ぜんぶ"    color="yellow" />
+          <FilterTab active={filter === "done"}    onClick={() => setFilter("done")}    label="よんだ"    color="yellow" />
+          <FilterTab active={filter === "reading"} onClick={() => setFilter("reading")} label="よんでる"  color="cyan" />
+          <FilterTab active={filter === "plan"}    onClick={() => setFilter("plan")}    label="よみたい"  color="magenta" />
         </div>
       </section>
 
-      {/* --- SEARCH & SORT --- */}
-      <section className="px-6 mb-6 flex gap-2 items-center">
-        <div className="relative flex-grow">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+      {/* ---- 検索 ---- */}
+      <section className="px-5 mb-5">
+        <div className="relative">
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-tokopuri-black/30 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="タイトル・著者で検索..."
-            className="w-full bg-navy-900/60 border border-slate-700/50 rounded-2xl pl-9 pr-9 py-2.5 text-sm text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-gold-500/50 transition-colors"
+            placeholder="タイトル・著者でさがす..."
+            className="w-full bg-white border-2 border-tokopuri-yellow/30 rounded-3xl pl-10 pr-10 py-3 text-base text-tokopuri-black placeholder:text-tokopuri-black/30 focus:outline-none focus:border-tokopuri-yellow font-rounded transition-colors"
           />
           {search && (
             <button
               onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-tokopuri-black/30 hover:text-tokopuri-black/60"
             >
-              <X size={14} />
+              <X size={16} />
             </button>
           )}
         </div>
-        <div className="relative flex-shrink-0">
-          <ArrowUpDown size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortKey)}
-            className="bg-navy-900/60 border border-slate-700/50 rounded-2xl pl-8 pr-3 py-2.5 text-sm text-slate-300 focus:outline-none focus:border-gold-500/50 transition-colors appearance-none cursor-pointer"
-          >
-            <option value="newest">新着順</option>
-            <option value="oldest">古い順</option>
-            <option value="title">タイトル順</option>
-            <option value="rating">評価順</option>
-          </select>
-        </div>
-        <button
-          onClick={() => setViewMode(viewMode === "list" ? "grid" : "list")}
-          className="flex-shrink-0 p-2.5 bg-navy-900/60 border border-slate-700/50 rounded-2xl text-slate-400 hover:text-gold-500 hover:border-gold-500/50 transition-colors"
-        >
-          {viewMode === "list" ? <LayoutGrid size={18} /> : <LayoutList size={18} />}
-        </button>
       </section>
 
-      {/* --- BOOK LIST / GRID --- */}
-      <section className="px-6 pb-20">
+      {/* ---- 本リスト ---- */}
+      <section className="px-5">
         <AnimatePresence mode="popLayout">
           {filteredBooks.length > 0 ? (
-            viewMode === "list" ? (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               {filteredBooks.map((book, idx) => (
                 <Link key={book.id} href={`/book/${book.id}`}>
                   <motion.div
-                    initial={{ opacity: 0, x: -10 }}
+                    initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="card-premium flex gap-4 items-center group active:scale-[0.98] transition-transform"
+                    transition={{ delay: idx * 0.04 }}
+                    className="card-kids flex gap-4 items-center active:scale-[0.98] transition-transform"
                   >
-                    <div className="w-16 h-24 flex-shrink-0 bg-navy-800 rounded-xl overflow-hidden shadow-xl border border-slate-700/50 relative">
-                      <img
-                        src={book.cover_url}
-                        alt={book.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      {book.status === "reading" && (
-                        <div className="absolute top-1 left-1 bg-emerald-500 w-2 h-2 rounded-full ring-2 ring-navy-900 shadow-lg shadow-emerald-500/40"></div>
+                    {/* 表紙 */}
+                    <div className="w-14 h-20 flex-shrink-0 bg-tokopuri-yellow/10 rounded-2xl overflow-hidden shadow-md border-2 border-tokopuri-yellow/20 relative">
+                      {book.cover_url ? (
+                        <img
+                          src={book.cover_url}
+                          alt={book.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl">📖</div>
                       )}
+                      {/* ステータスバッジ */}
+                      <StatusDot status={book.status} />
                     </div>
+
                     <div className="flex-grow min-w-0">
-                      <p className="text-[10px] text-slate-500 font-sans uppercase tracking-[0.2em] mb-1">
-                        {book.status === "reading" ? "現在読書中" : book.status === "done" ? "読了" : "積読"}
-                      </p>
-                      <h4 className="text-slate-100 font-serif font-bold text-lg leading-tight truncate mb-1">
+                      <StatusLabel status={book.status} />
+                      <h4 className="text-tokopuri-black font-rounded font-black text-base leading-tight truncate mt-0.5">
                         {book.title}
                       </h4>
-                      <p className="text-slate-400 text-sm font-sans opacity-80 truncate">
+                      <p className="text-tokopuri-black/50 text-sm font-rounded truncate mt-0.5">
                         {book.author}
                       </p>
                     </div>
-                    <ChevronRight size={20} className="text-slate-600 group-hover:text-gold-500 transition-colors" />
+                    <ChevronRight size={20} className="text-tokopuri-yellow flex-shrink-0" />
                   </motion.div>
                 </Link>
               ))}
             </div>
-            ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {filteredBooks.map((book, idx) => (
-                <Link key={book.id} href={`/book/${book.id}`}>
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ delay: idx * 0.03 }}
-                    className="flex flex-col group active:scale-95 transition-transform"
-                  >
-                    <div className="relative w-full aspect-[2/3] bg-navy-800 rounded-2xl overflow-hidden shadow-xl border border-slate-700/50 mb-2">
-                      <img
-                        src={book.cover_url}
-                        alt={book.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      {book.status === "reading" && (
-                        <div className="absolute top-1.5 left-1.5 bg-emerald-500 w-2 h-2 rounded-full ring-2 ring-navy-900 shadow-lg shadow-emerald-500/40"></div>
-                      )}
-                      {book.status === "done" && (
-                        <div className="absolute top-1.5 right-1.5 p-1 bg-gold-500/90 rounded-lg">
-                          <CheckCircle2 size={10} className="text-navy-950" />
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-slate-200 font-serif font-bold text-xs leading-tight line-clamp-2 px-0.5">
-                      {book.title}
-                    </p>
-                    <p className="text-slate-500 text-[10px] font-sans truncate mt-0.5 px-0.5">
-                      {book.author}
-                    </p>
-                  </motion.div>
-                </Link>
-              ))}
-            </div>
-            )
           ) : (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="py-16 flex flex-col items-center justify-center opacity-40 text-center"
+              className="py-16 flex flex-col items-center gap-4 opacity-50"
             >
-              <Bookmark size={48} className="mb-4 text-slate-600" />
-              <p className="text-slate-500 font-serif italic font-medium">
-                {search ? `「${search}」に一致する本が見つかりません` : "まだ記録がありません"}
+              <Bookmark size={48} className="text-tokopuri-yellow" />
+              <p className="font-rounded font-bold text-tokopuri-black text-center">
+                {search ? `「${search}」はまだないよ` : "まだきろくがないよ"}
               </p>
             </motion.div>
           )}
         </AnimatePresence>
       </section>
 
-      {/* --- FLOATING SCAN BUTTON --- */}
-      <Link href="/scan" className="fixed bottom-24 right-5 z-40">
+      {/* ---- トコプリ待機アニメ ---- */}
+      <CharacterIdle />
+
+      {/* ---- スキャンボタン（FAB）---- */}
+      <Link href="/scan" className="fixed bottom-6 right-5 z-40">
         <motion.div
           whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="w-16 h-16 bg-gradient-to-br from-gold-400 to-gold-600 rounded-full flex items-center justify-center shadow-2xl shadow-gold-500/40 border-4 border-navy-950/20 relative"
+          whileTap={{ scale: 0.92 }}
+          className="w-18 h-18 bg-tokopuri-yellow rounded-full flex items-center justify-center shadow-xl shadow-tokopuri-yellow/40 border-4 border-white relative"
+          style={{ width: 72, height: 72 }}
         >
-          <Camera size={28} className="text-navy-950" />
-          <div className="absolute -top-1 -right-1 w-5 h-5 bg-navy-900 rounded-full flex items-center justify-center border-2 border-gold-500 group">
-            <Plus size={12} className="text-gold-500 group-hover:rotate-90 transition-transform" />
+          <Camera size={30} className="text-tokopuri-black" />
+          <div className="absolute -top-1 -right-1 w-6 h-6 bg-tokopuri-magenta rounded-full flex items-center justify-center border-2 border-white">
+            <Plus size={14} className="text-white" />
           </div>
         </motion.div>
       </Link>
-
-      {/* --- BOTTOM NAV --- */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md h-20 bg-navy-950/80 backdrop-blur-2xl border-t border-slate-800/80 px-6 flex items-center justify-around z-50">
-        <NavBtn href="/" icon={<Library size={24} />} active label="ホーム" />
-        <NavBtn href="/analysis" icon={<BarChart3 size={24} />} label="分析" />
-      </nav>
     </div>
   );
 }
 
-function StatsCard({ icon, count, label, color }: { icon: React.ReactNode; count: number; label: string; color: string }) {
+// ---- サブコンポーネント ----
+
+function StatsCard({
+  icon, count, label, bg, iconColor,
+}: {
+  icon: React.ReactNode;
+  count: number;
+  label: string;
+  bg: string;
+  iconColor: string;
+}) {
   return (
-    <div className={`flex flex-col items-center justify-center p-3 rounded-2xl ${color} border border-slate-800/50 shadow-inner backdrop-blur-sm group hover:scale-105 transition-transform cursor-pointer`}>
-      <div className="mb-1 opacity-60 group-hover:scale-110 transition-transform">{icon}</div>
-      <span className="text-xl font-bold font-sans tracking-tight">{count}</span>
-      <span className="text-[10px] uppercase opacity-40 tracking-wider mt-0.5">{label}</span>
+    <div className={`flex flex-col items-center justify-center py-4 rounded-3xl ${bg} border border-white/60`}>
+      <div className={`mb-1 ${iconColor}`}>{icon}</div>
+      <span className="text-2xl font-rounded font-black text-tokopuri-black">{count}</span>
+      <span className="text-[11px] font-rounded font-bold text-tokopuri-black/60 mt-0.5">{label}</span>
     </div>
   );
 }
 
-function FilterTab({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+function FilterTab({
+  active, label, onClick, color,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+  color: "yellow" | "cyan" | "magenta";
+}) {
+  const colorMap = {
+    yellow:  { active: "bg-tokopuri-yellow text-tokopuri-black border-tokopuri-yellow",   inactive: "bg-white border-tokopuri-yellow/30 text-tokopuri-black/50" },
+    cyan:    { active: "bg-tokopuri-cyan text-white border-tokopuri-cyan",               inactive: "bg-white border-tokopuri-cyan/30 text-tokopuri-black/50" },
+    magenta: { active: "bg-tokopuri-magenta text-white border-tokopuri-magenta",         inactive: "bg-white border-tokopuri-magenta/30 text-tokopuri-black/50" },
+  };
   return (
     <button
       onClick={onClick}
-      className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap border ${
-        active
-          ? "bg-gold-500/10 border-gold-500/50 text-gold-500 shadow-lg shadow-gold-900/10"
-          : "bg-navy-900/40 border-slate-800 text-slate-500 hover:text-slate-300"
+      className={`px-5 py-2.5 rounded-full text-sm font-rounded font-bold border-2 whitespace-nowrap transition-all active:scale-95 ${
+        active ? colorMap[color].active : colorMap[color].inactive
       }`}
     >
       {label}
@@ -367,15 +302,21 @@ function FilterTab({ active, label, onClick }: { active: boolean; label: string;
   );
 }
 
-function NavBtn({ href, icon, active, label }: { href: string; icon: React.ReactNode; active?: boolean; label: string }) {
+function StatusDot({ status }: { status: BookStatus }) {
+  if (status === "reading") return <div className="absolute top-1 left-1 w-3 h-3 bg-tokopuri-cyan rounded-full ring-2 ring-white" />;
+  if (status === "done")    return <div className="absolute top-1 left-1 w-3 h-3 bg-tokopuri-yellow rounded-full ring-2 ring-white" />;
+  return null;
+}
+
+function StatusLabel({ status }: { status: BookStatus }) {
+  const map: Record<BookStatus, { label: string; color: string }> = {
+    done:    { label: "よんだ",   color: "text-tokopuri-yellow" },
+    reading: { label: "よんでる", color: "text-tokopuri-cyan" },
+    plan:    { label: "よみたい", color: "text-tokopuri-magenta" },
+  };
   return (
-    <Link href={href} className="flex flex-col items-center gap-1" style={{ touchAction: "manipulation" }}>
-      <div className={`p-2.5 rounded-2xl transition-all ${active ? "bg-gold-500/15 text-gold-500 shadow-md shadow-gold-500/10 ring-1 ring-gold-500/30" : "text-slate-500"}`}>
-        {icon}
-      </div>
-      <span className={`text-[10px] font-bold font-sans uppercase tracking-[0.2em] transition-colors ${active ? "text-gold-500" : "text-slate-500"}`}>
-        {label}
-      </span>
-    </Link>
+    <span className={`text-[11px] font-rounded font-bold ${map[status].color}`}>
+      {map[status].label}
+    </span>
   );
 }

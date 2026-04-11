@@ -1,26 +1,21 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   Camera,
   X,
   Upload,
-  Sparkles,
   ArrowLeft,
   BookMarked,
   Check,
   RefreshCcw,
-  Zap,
-  BookOpen,
-  CheckCircle2,
-  Bookmark,
   Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BookStatus } from "@/lib/types";
-import { ConciergeCelebration } from "@/components/ConciergeCelebration";
+import { CharacterAnimation, AnimationType } from "@/components/CharacterAnimation";
 
 type ScanResult = {
   title: string;
@@ -32,47 +27,55 @@ type ScanResult = {
   cover_url: string;
 };
 
+// 3の倍数達成時：50%で通常プリン/裏プリン分岐
+function getMilestoneType(): AnimationType {
+  return Math.random() < 0.5 ? "milestone_normal" : "milestone_ura";
+}
+
+// 通常登録：ウィンク/笑顔ランダム
+function getNormalType(): AnimationType {
+  return Math.random() < 0.5 ? "wink" : "smile";
+}
+
 export default function ScanPage() {
   const router = useRouter();
   const [image, setImage] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<BookStatus>("plan");
-  const [celebration, setCelebration] = useState<{ show: boolean; count: number }>({ show: false, count: 0 });
-  const fileInputRef = useRef<HTMLInputElement>(null);      // カメラ用
-  const galleryInputRef = useRef<HTMLInputElement>(null);   // ギャラリー用
+  const [selectedStatus, setSelectedStatus] = useState<BookStatus>("done");
+  const [animation, setAnimation] = useState<{ show: boolean; type: AnimationType }>({
+    show: false,
+    type: "wink",
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const startScan = async (base64Image: string) => {
     setIsScanning(true);
     try {
-      const response = await fetch("/api/scan", {
+      const res = await fetch("/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: base64Image }),
       });
-
-      const data = await response.json();
+      const data = await res.json();
       if (data.error) throw new Error(data.error);
-
       setScanResult({
-        title: data.title || "タイトル不明",
-        author: data.author || "著者不明",
-        publisher: data.publisher || "",
-        genre: data.genre || "",
-        isbn: data.isbn || "",
+        title:       data.title       || "タイトル不明",
+        author:      data.author      || "著者不明",
+        publisher:   data.publisher   || "",
+        genre:       data.genre       || "",
+        isbn:        data.isbn        || "",
         description: data.description || data.summary || "",
-        cover_url: data.cover_url || base64Image,
+        cover_url:   data.cover_url   || base64Image,
       });
-
-      if (data.cover_url) {
-        setImage(data.cover_url);
-      }
-    } catch (error) {
-      console.error("Scan error:", error);
+      if (data.cover_url) setImage(data.cover_url);
+    } catch (err) {
+      console.error("Scan error:", err);
       setScanResult({
-        title: "解析に失敗しました",
-        author: "再試行してください",
+        title: "よみとれなかったよ…",
+        author: "もういちどためしてね",
         publisher: "",
         cover_url: base64Image,
       });
@@ -84,15 +87,13 @@ export default function ScanPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const img = new Image();
     const objectUrl = URL.createObjectURL(file);
     img.onload = () => {
-      // 長辺を800pxに縮小してJPEG圧縮
       const MAX = 800;
       const scale = Math.min(1, MAX / Math.max(img.width, img.height));
       const canvas = document.createElement("canvas");
-      canvas.width = Math.round(img.width * scale);
+      canvas.width  = Math.round(img.width * scale);
       canvas.height = Math.round(img.height * scale);
       canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
       const compressed = canvas.toDataURL("image/jpeg", 0.85);
@@ -111,68 +112,79 @@ export default function ScanPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: scanResult.title,
-          author: scanResult.author,
-          publisher: scanResult.publisher,
-          genre: scanResult.genre,
-          isbn: scanResult.isbn,
+          title:       scanResult.title,
+          author:      scanResult.author,
+          publisher:   scanResult.publisher,
+          genre:       scanResult.genre,
+          isbn:        scanResult.isbn,
           description: scanResult.description,
-          cover_url: scanResult.cover_url,
-          status: selectedStatus,
+          cover_url:   scanResult.cover_url,
+          status:      selectedStatus,
         }),
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "登録に失敗しました");
 
+      // ---- MilestoneChecker ----
       const countRes = await fetch("/api/books/count");
       const { count } = await countRes.json();
-      if (count % 5 === 0) {
-        setCelebration({ show: true, count });
-      } else {
-        window.location.href = "/"; // フルリロードでキャッシュを確実にリセット
-      }
-    } catch (error: any) {
-      console.error("Register error:", error);
-      alert(`登録に失敗しました: ${error.message}`);
+
+      const type: AnimationType =
+        count % 3 === 0 ? getMilestoneType() : getNormalType();
+
+      setAnimation({ show: true, type });
+    } catch (err: unknown) {
+      console.error("Register error:", err);
+      const msg = err instanceof Error ? err.message : "登録に失敗しました";
+      alert(`登録に失敗しました: ${msg}`);
     } finally {
       setIsSaving(false);
     }
   };
 
+  const handleAnimationClose = useCallback(() => {
+    setAnimation((prev) => ({ ...prev, show: false }));
+    window.location.href = "/";
+  }, []);
+
   const reset = () => {
     setImage(null);
     setScanResult(null);
     setIsScanning(false);
-    setSelectedStatus("plan");
+    setSelectedStatus("done");
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-navy-950 text-slate-100">
-      <ConciergeCelebration
-        show={celebration.show}
-        count={celebration.count}
-        onClose={() => { window.location.href = "/"; }}
+    <div className="flex flex-col min-h-screen bg-tokopuri-cream text-tokopuri-black">
+
+      {/* キャラクター演出 */}
+      <CharacterAnimation
+        type={animation.type}
+        show={animation.show}
+        onClose={handleAnimationClose}
       />
-      {/* --- NAV BAR --- */}
-      <nav className="p-6 flex items-center justify-between z-10">
+
+      {/* ---- ナビ ---- */}
+      <nav className="px-5 pt-6 pb-2 flex items-center justify-between">
         <Link
           href="/"
-          className="p-2 bg-navy-900 border border-slate-700/50 rounded-2xl transition-colors"
+          className="p-3 bg-white border-2 border-tokopuri-yellow/40 rounded-2xl"
           style={{ touchAction: "manipulation" }}
         >
-          <ArrowLeft size={20} className="text-slate-400" />
+          <ArrowLeft size={20} className="text-tokopuri-black" />
         </Link>
-        <span className="text-slate-100 font-serif font-bold text-lg">
-          表紙スキャン
+        <span className="font-rounded font-black text-xl text-tokopuri-black">
+          ほんをとうろく
         </span>
-        <button onClick={reset} className="p-2 text-slate-600 hover:text-slate-400">
+        <button onClick={reset} className="p-3 text-tokopuri-black/30 hover:text-tokopuri-black/60">
           <X size={20} />
         </button>
       </nav>
 
-      <main className="flex-grow flex flex-col items-center justify-center -mt-10 px-6">
+      <main className="flex-grow flex flex-col items-center px-5 pt-4">
         <AnimatePresence mode="wait">
-          {/* --- 初期状態 --- */}
+
+          {/* ---- 初期状態 ---- */}
           {!image && (
             <motion.div
               key="empty"
@@ -181,58 +193,51 @@ export default function ScanPage() {
               exit={{ opacity: 0, scale: 0.9 }}
               className="w-full flex flex-col items-center"
             >
-              <div className="w-64 h-80 bg-navy-900/40 border-2 border-dashed border-slate-700/50 rounded-[40px] flex flex-col items-center justify-center p-8 text-center backdrop-blur-sm relative group overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gold-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-gold-500/10 transition-all"></div>
-                <div className="mb-6 p-6 bg-navy-800 border border-slate-700/50 rounded-full text-slate-500 animate-float">
-                  <Camera size={48} />
-                </div>
-                <h2 className="text-slate-300 font-serif font-medium text-lg leading-tight mb-3">
-                  表紙を枠内に収めて
-                  <br />
-                  撮影してください
-                </h2>
-                <p className="text-slate-500 text-xs font-sans tracking-wider leading-relaxed">
-                  AIがタイトル、著者、出版社等を
-                  <br />
-                  自動で読み取ります
+              {/* トコプリのヒント */}
+              <div className="flex flex-col items-center mb-6 text-center">
+                <img
+                  src="/characters/tokopuri_walk.gif"
+                  alt="トコプリ"
+                  className="w-36 h-36 object-contain mb-3"
+                />
+                <p className="font-rounded font-bold text-tokopuri-black text-lg">
+                  ひょうしをさつえいしてね！
+                </p>
+                <p className="font-rounded text-tokopuri-black/50 text-sm mt-1">
+                  AIがほんのなまえをよみとるよ。ほわ。
                 </p>
               </div>
 
-              <div className="mt-10 flex flex-col gap-4 w-full max-w-xs">
+              {/* 撮影エリア */}
+              <div className="w-52 h-64 bg-white border-4 border-dashed border-tokopuri-yellow/50 rounded-4xl flex flex-col items-center justify-center mb-8 relative overflow-hidden">
+                <div className="p-5 bg-tokopuri-yellow/10 rounded-full mb-3 animate-float">
+                  <Camera size={48} className="text-tokopuri-yellow" />
+                </div>
+                <p className="font-rounded text-tokopuri-black/40 text-sm text-center px-4">
+                  ここにひょうしを<br />うつしてね
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 w-full max-w-xs">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="btn-primary w-full py-4 text-lg"
+                  className="btn-kids-primary w-full"
                 >
-                  <Camera size={24} /> 撮影を開始する
+                  <Camera size={24} /> さつえいする
                 </button>
                 <button
                   onClick={() => galleryInputRef.current?.click()}
-                  className="flex items-center justify-center gap-2 text-slate-400 font-bold hover:text-slate-200 transition-colors py-3"
+                  className="flex items-center justify-center gap-2 py-3 text-tokopuri-cyan font-rounded font-bold text-base"
                 >
-                  <Upload size={18} /> ギャラリーから選択
+                  <Upload size={18} /> アルバムからえらぶ
                 </button>
-                {/* カメラ起動用 */}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  capture="environment"
-                  className="hidden"
-                />
-                {/* ギャラリー選択用（capture なし） */}
-                <input
-                  type="file"
-                  ref={galleryInputRef}
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className="hidden"
-                />
+                <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+                <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
               </div>
             </motion.div>
           )}
 
-          {/* --- スキャン中 --- */}
+          {/* ---- スキャン中 ---- */}
           {image && isScanning && (
             <motion.div
               key="scanning"
@@ -240,39 +245,29 @@ export default function ScanPage() {
               animate={{ opacity: 1 }}
               className="w-full flex flex-col items-center"
             >
-              <div className="w-64 h-84 bg-navy-900 border-4 border-gold-500/20 rounded-[40px] overflow-hidden relative shadow-2xl shadow-gold-900/20">
-                <img
-                  src={image}
-                  alt="Preview"
-                  className="w-full h-full object-cover opacity-60 scale-105 blur-[2px]"
-                />
+              <div className="w-52 h-64 bg-white rounded-4xl overflow-hidden border-4 border-tokopuri-yellow relative shadow-xl">
+                <img src={image} alt="Preview" className="w-full h-full object-cover opacity-50" />
                 <motion.div
                   animate={{ top: ["0%", "100%", "0%"] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                  className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold-400 to-transparent shadow-[0_0_15px_rgba(201,168,76,0.8)] z-20"
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  className="absolute left-0 right-0 h-1.5 bg-tokopuri-yellow/80 shadow-[0_0_12px_rgba(245,200,66,0.9)] z-20"
                 />
-                <div className="absolute inset-0 flex items-center justify-center z-10 bg-navy-950/40">
-                  <div className="flex flex-col items-center">
-                    <Sparkles size={48} className="text-gold-500 mb-4 animate-[pulse_1.5s_infinite]" />
-                    <div className="px-4 py-1.5 bg-navy-900/90 border border-gold-500/40 rounded-full text-[10px] font-bold text-gold-500 tracking-[0.2em] font-sans uppercase">
-                      AIが解析中...
-                    </div>
+                <div className="absolute inset-0 flex items-center justify-center bg-white/30">
+                  <div className="flex flex-col items-center gap-3">
+                    <img src="/characters/tokopuri_walk.gif" alt="よみとり中" className="w-16 h-16 object-contain" />
+                    <span className="font-rounded font-bold text-tokopuri-black text-sm bg-white/80 px-4 py-1.5 rounded-full">
+                      よみとり中…ほわ。
+                    </span>
                   </div>
                 </div>
               </div>
-
-              <div className="mt-12 text-center max-w-xs">
-                <h3 className="text-xl font-serif font-bold text-slate-100 mb-2">
-                  本の情報を抽出しています
-                </h3>
-                <p className="text-slate-400 text-sm italic font-serif leading-relaxed px-4">
-                  「AIが見つけたデータは、記録ボタンを押す前に自分で修正が可能です」
-                </p>
-              </div>
+              <p className="mt-6 font-rounded font-bold text-tokopuri-black/60 text-center">
+                ほんのじょうほうをさがしているよ
+              </p>
             </motion.div>
           )}
 
-          {/* --- スキャン結果 --- */}
+          {/* ---- スキャン結果 ---- */}
           {scanResult && !isScanning && (
             <motion.div
               key="result"
@@ -280,154 +275,115 @@ export default function ScanPage() {
               animate={{ opacity: 1, y: 0 }}
               className="w-full flex flex-col items-center"
             >
-              <div className="w-full card-premium border-2 border-gold-500/30 overflow-hidden p-6 relative">
-                {/* Success Badge */}
-                <div className="absolute -top-1 -right-1 p-2 bg-gold-500 rounded-bl-3xl shadow-lg ring-4 ring-navy-950">
-                  <Check size={20} className="text-navy-950" />
+              <div className="w-full card-kids border-2 border-tokopuri-yellow/40 overflow-hidden relative mb-4">
+                {/* 成功バッジ */}
+                <div className="absolute -top-1 -right-1 p-2.5 bg-tokopuri-yellow rounded-bl-3xl shadow ring-4 ring-tokopuri-cream">
+                  <Check size={18} className="text-tokopuri-black" />
                 </div>
 
-                <div className="flex gap-6 items-start mb-6">
-                  <div className="w-24 h-36 flex-shrink-0 bg-navy-800 rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50">
-                    <img
-                      src={image!}
-                      alt="Book Cover"
-                      className="w-full h-full object-cover"
-                    />
+                <div className="flex gap-4 items-start mb-5">
+                  <div className="w-20 h-28 flex-shrink-0 bg-tokopuri-yellow/10 rounded-2xl overflow-hidden shadow border-2 border-tokopuri-yellow/20">
+                    {scanResult.cover_url ? (
+                      <img src={image!} alt="表紙" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-3xl">📖</div>
+                    )}
                   </div>
-                  <div className="flex-grow pt-2">
-                    <p className="text-[10px] text-gold-500 font-bold uppercase tracking-[0.2em] mb-2">
-                      解析結果
+                  <div className="flex-grow pt-1">
+                    <p className="text-[10px] text-tokopuri-magenta font-rounded font-bold uppercase tracking-wider mb-2">
+                      よみとれたよ！
                     </p>
                     <input
                       value={scanResult.title}
                       onChange={(e) => setScanResult({ ...scanResult, title: e.target.value })}
-                      className="w-full bg-transparent text-xl font-serif font-black text-slate-100 leading-tight mb-2 underline decoration-gold-500/30 decoration-4 border-b border-transparent focus:border-gold-500/50 focus:outline-none transition-colors"
+                      className="w-full bg-transparent text-lg font-rounded font-black text-tokopuri-black leading-tight mb-1.5 border-b-2 border-tokopuri-yellow/30 focus:border-tokopuri-yellow focus:outline-none transition-colors"
                     />
                     <input
                       value={scanResult.author}
                       onChange={(e) => setScanResult({ ...scanResult, author: e.target.value })}
-                      className="w-full bg-transparent text-slate-300 font-sans font-medium mb-2 text-sm border-b border-transparent focus:border-gold-500/50 focus:outline-none transition-colors"
+                      className="w-full bg-transparent text-sm font-rounded text-tokopuri-black/60 border-b border-tokopuri-yellow/20 focus:border-tokopuri-yellow focus:outline-none transition-colors"
                       placeholder="著者名"
-                    />
-                    <input
-                      value={scanResult.publisher ?? ""}
-                      onChange={(e) => setScanResult({ ...scanResult, publisher: e.target.value })}
-                      className="w-full bg-transparent text-slate-400 font-sans text-xs border-b border-transparent focus:border-gold-500/50 focus:outline-none transition-colors mb-1"
-                      placeholder="出版社"
-                    />
-                    <input
-                      value={scanResult.genre ?? ""}
-                      onChange={(e) => setScanResult({ ...scanResult, genre: e.target.value })}
-                      className="w-full bg-transparent text-slate-400 font-sans text-xs border-b border-transparent focus:border-gold-500/50 focus:outline-none transition-colors"
-                      placeholder="ジャンル"
                     />
                   </div>
                 </div>
 
-                {/* --- ステータス選択 --- */}
-                <div className="mb-6">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mb-3">
-                    読書ステータス
+                {/* ---- ステータス選択 ---- */}
+                <div className="mb-5">
+                  <p className="text-xs text-tokopuri-black/40 font-rounded font-bold mb-3">
+                    どうだった？
                   </p>
                   <div className="grid grid-cols-3 gap-2">
                     <StatusBtn
-                      active={selectedStatus === "reading"}
-                      onClick={() => setSelectedStatus("reading")}
-                      icon={<BookOpen size={16} />}
-                      label="読書中"
-                      color="emerald"
-                    />
-                    <StatusBtn
                       active={selectedStatus === "done"}
                       onClick={() => setSelectedStatus("done")}
-                      icon={<CheckCircle2 size={16} />}
-                      label="読了"
-                      color="gold"
+                      emoji="✅"
+                      label="よんだ"
+                      color="yellow"
+                    />
+                    <StatusBtn
+                      active={selectedStatus === "reading"}
+                      onClick={() => setSelectedStatus("reading")}
+                      emoji="📖"
+                      label="よんでる"
+                      color="cyan"
                     />
                     <StatusBtn
                       active={selectedStatus === "plan"}
                       onClick={() => setSelectedStatus("plan")}
-                      icon={<Bookmark size={16} />}
-                      label="積読"
-                      color="slate"
+                      emoji="🔖"
+                      label="よみたい"
+                      color="magenta"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3">
+                <div className="flex flex-col gap-3">
                   <button
                     onClick={handleRegister}
                     disabled={isSaving}
-                    className="btn-primary w-full shadow-gold-500/20 disabled:opacity-60"
+                    className="btn-kids-primary w-full disabled:opacity-60"
                   >
                     {isSaving ? (
-                      <>
-                        <Loader2 size={20} className="animate-spin" /> 登録中...
-                      </>
+                      <><Loader2 size={22} className="animate-spin" /> とうろく中…</>
                     ) : (
-                      <>
-                        <BookMarked size={20} /> ライブラリに登録
-                      </>
+                      <><BookMarked size={22} /> ほんだなにとうろく！</>
                     )}
                   </button>
-                  <button onClick={reset} className="btn-secondary w-full">
-                    <RefreshCcw size={18} /> やり直す
+                  <button onClick={reset} className="btn-kids-secondary w-full">
+                    <RefreshCcw size={18} /> やりなおす
                   </button>
                 </div>
-              </div>
-
-              <div className="mt-8 flex items-center gap-3 py-3 px-5 bg-gold-500/10 rounded-2xl border border-gold-500/20">
-                <Zap size={16} className="text-gold-500" />
-                <span className="text-sm font-bold text-gold-500 font-sans">
-                  98% Accuracy by Gemini Vision
-                </span>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </main>
-
-      {!image && (
-        <div className="p-10 text-center opacity-40">
-          <p className="text-xs font-serif italic text-slate-400">
-            "A house without books is like a room without windows." — Cicero
-          </p>
-        </div>
-      )}
     </div>
   );
 }
 
 function StatusBtn({
-  active,
-  onClick,
-  icon,
-  label,
-  color,
+  active, onClick, emoji, label, color,
 }: {
   active: boolean;
   onClick: () => void;
-  icon: React.ReactNode;
+  emoji: string;
   label: string;
-  color: "emerald" | "gold" | "slate";
+  color: "yellow" | "cyan" | "magenta";
 }) {
   const colorMap = {
-    emerald: active
-      ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-400"
-      : "bg-navy-900/40 border-slate-800 text-slate-500",
-    gold: active
-      ? "bg-gold-500/10 border-gold-500/50 text-gold-500"
-      : "bg-navy-900/40 border-slate-800 text-slate-500",
-    slate: active
-      ? "bg-slate-700/20 border-slate-600 text-slate-100"
-      : "bg-navy-900/40 border-slate-800 text-slate-500",
+    yellow:  { active: "bg-tokopuri-yellow border-tokopuri-yellow text-tokopuri-black",   inactive: "bg-white border-tokopuri-yellow/30 text-tokopuri-black/50" },
+    cyan:    { active: "bg-tokopuri-cyan border-tokopuri-cyan text-white",               inactive: "bg-white border-tokopuri-cyan/30 text-tokopuri-black/50" },
+    magenta: { active: "bg-tokopuri-magenta border-tokopuri-magenta text-white",         inactive: "bg-white border-tokopuri-magenta/30 text-tokopuri-black/50" },
   };
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all text-[10px] font-bold uppercase tracking-widest ${colorMap[color]}`}
+      className={`flex flex-col items-center gap-2 py-3 rounded-3xl border-2 font-rounded font-bold text-sm transition-all active:scale-95 ${
+        active ? colorMap[color].active : colorMap[color].inactive
+      }`}
     >
-      {icon}
+      <span className="text-2xl">{emoji}</span>
       {label}
     </button>
   );

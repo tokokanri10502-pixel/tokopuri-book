@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Serif_JP } from "next/font/google";
+import { Inter, Noto_Serif_JP, M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
 import React from "react";
 
@@ -10,17 +10,24 @@ const notoSerifJP = Noto_Serif_JP({
   variable: "--font-noto-serif-jp",
   display: "swap",
 });
+const mplusRounded = M_PLUS_Rounded_1c({
+  subsets: ["latin"],
+  weight: ["400", "700", "800"],
+  variable: "--font-mplus-rounded",
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#F5C842",
 };
 
 export const metadata: Metadata = {
-  title: "BOOK MEMORIES — 撮るだけ登録、AIと育む体験",
-  description: "AIによる表紙スキャンで、読書を習慣化し、記録を楽に残せるパーソナルライブラリ。",
+  title: "とこぷりブック",
+  description: "トコトコプリンと一緒に読んだ本を記録しよう！",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -31,8 +38,8 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
-    title: "BOOK MEMORIES",
+    statusBarStyle: "default",
+    title: "とこぷりブック",
   },
 };
 
@@ -42,9 +49,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={`${inter.variable} ${notoSerifJP.variable}`}>
-      <body className="bg-navy-900 text-slate-100 min-h-[100dvh] flex flex-col items-center">
-        <main className="w-full max-w-md bg-navy-950/50 shadow-2xl relative border-x border-slate-800/50 overflow-hidden">
+    <html lang="ja" className={`${inter.variable} ${notoSerifJP.variable} ${mplusRounded.variable}`}>
+      <body className="bg-tokopuri-cream text-tokopuri-black min-h-[100dvh] flex flex-col items-center">
+        <main className="w-full max-w-md bg-tokopuri-cream shadow-xl relative overflow-hidden">
           {children}
         </main>
       </body>

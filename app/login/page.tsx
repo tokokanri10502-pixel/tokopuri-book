@@ -1,9 +1,25 @@
 "use client";
 
+import React, { useState, useRef } from "react";
 import { createClient } from "@/lib/supabase-browser";
-import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Step = "email" | "code" | "success";
+
+// ステップごとのキャラクター設定
+const STEP_CONFIG: Record<Step, { gif: string; line: string }> = {
+  email:   { gif: "/characters/tokopuri_walk.gif",    line: "まってるよ！ほわ。" },
+  code:    { gif: "/characters/tokopuri_wink.gif",    line: "コードをにゅうりょくしてね。ほわ。" },
+  success: { gif: "/characters/tokopuri_smile.gif",   line: "やったー！ほわ。" },
+};
+
+// ランダムで裏プリンを出没させる（20%の確率）
+function getCharConfig(step: Step) {
+  if (step === "email" && Math.random() < 0.2) {
+    return { gif: "/characters/ura_purin_front.gif", line: "メールアドレスですよ。ほわ。" };
+  }
+  return STEP_CONFIG[step];
+}
 
 export default function LoginPage() {
   const [step, setStep] = useState<Step>("email");
@@ -14,7 +30,12 @@ export default function LoginPage() {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const supabase = createClient();
 
-  // ① メール送信
+    // Hydration対策: 初期値は固定、マウント後にランダム判定
+  const [stepChar, setStepChar] = useState(STEP_CONFIG.email);
+  React.useEffect(() => {
+    setStepChar(getCharConfig("email"));
+  }, []);
+
   const handleSendEmail = async () => {
     if (!email) return;
     setLoading(true);
@@ -25,22 +46,19 @@ export default function LoginPage() {
     });
     setLoading(false);
     if (error) {
-      setError(`送信失敗: ${error.message}`);
+      setError("おくれませんでした。もういちどためしてね。");
     } else {
+      setStepChar(STEP_CONFIG.code);
       setStep("code");
     }
   };
 
-  // ② コード入力
   const handleCodeChange = (index: number, value: string) => {
     const digit = value.replace(/\D/g, "").slice(-1);
     const newCode = [...code];
     newCode[index] = digit;
     setCode(newCode);
-    if (digit && index < 7) {
-      inputRefs.current[index + 1]?.focus();
-    }
-    // 8桁揃ったら自動送信
+    if (digit && index < 7) inputRefs.current[index + 1]?.focus();
     if (newCode.every((d) => d !== "") && newCode.join("").length === 8) {
       handleVerify(newCode.join(""));
     }
@@ -52,145 +70,205 @@ export default function LoginPage() {
     }
   };
 
-  // ペースト対応
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 8);
     if (!pasted) return;
     const newCode = [...code];
-    pasted.split("").forEach((digit, i) => { newCode[i] = digit; });
+    pasted.split("").forEach((d, i) => { newCode[i] = d; });
     setCode(newCode);
-    const nextIndex = Math.min(pasted.length, 7);
-    inputRefs.current[nextIndex]?.focus();
-    if (pasted.length === 8) {
-      handleVerify(pasted);
-    }
+    inputRefs.current[Math.min(pasted.length, 7)]?.focus();
+    if (pasted.length === 8) handleVerify(pasted);
   };
 
-  // ③ コード検証
   const handleVerify = async (token: string) => {
     setLoading(true);
     setError("");
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: "email",
-    });
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
     setLoading(false);
     if (error) {
-      setError("コードが正しくありません。再度お試しください。");
+      setError("コードがちがうよ。もういちどためしてね。");
       setCode(["", "", "", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     } else {
+      setStepChar(STEP_CONFIG.success);
       setStep("success");
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 500);
+      setTimeout(() => { window.location.href = "/"; }, 1200);
     }
   };
 
   return (
-    <div className="min-h-screen bg-navy-950 flex flex-col items-center justify-center px-8 gap-8">
-      {/* タイトル */}
-      <div className="flex flex-col items-center gap-2">
-        <p className="text-slate-400 text-xs tracking-[0.3em] uppercase">Personal Library</p>
-        <h1 className="text-4xl font-bold tracking-wider font-serif">
-          <span className="text-slate-100">BOOK </span>
-          <span className="text-gold-400">MEMORIES</span>
-        </h1>
-        <p className="text-slate-500 text-sm mt-2 text-center">
-          読書の記録を、もっと気軽に。
+    <div
+      className="min-h-screen flex flex-col items-center justify-center px-6 gap-6"
+      style={{ background: "linear-gradient(160deg, #FFFDF0 0%, #FFF8D6 50%, #FFFDF0 100%)" }}
+    >
+      {/* ---- タイトル ---- */}
+      <div className="flex flex-col items-center gap-1 text-center">
+        <p className="font-rounded font-bold text-tokopuri-magenta text-xs tracking-widest uppercase">
+          📖 とこぷりブック 📖
         </p>
+        <h1 className="font-rounded font-black text-4xl text-tokopuri-black leading-tight">
+          たいせつなほんを<br />
+          <span className="text-tokopuri-yellow">きろく</span>しよう
+        </h1>
       </div>
 
-      <div className="text-7xl select-none">📚</div>
-
-      <div className="w-full flex flex-col gap-4">
-
-        {/* STEP 1: メールアドレス入力 */}
-        {step === "email" && (
-          <>
-            <p className="text-slate-400 text-sm text-center">
-              メールアドレスに8桁のコードを送ります
-            </p>
-            <input
-              type="email"
-              placeholder="メールアドレス"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSendEmail()}
-              className="w-full bg-navy-900 border border-slate-700 rounded-2xl py-4 px-5 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-gold-500/50 text-center"
+      {/* ---- キャラクター & 吹き出し ---- */}
+      <div className="flex flex-col items-center gap-3">
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={stepChar.gif}
+            src={stepChar.gif}
+            alt="トコプリ"
+            className="w-28 h-28 object-contain drop-shadow-lg"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1, y: [0, -6, 0] }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ duration: 0.4 }}
+          />
+        </AnimatePresence>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={stepChar.line}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="relative bg-white rounded-3xl px-5 py-3 shadow-md border-2 border-tokopuri-yellow/30 max-w-[220px] text-center"
+          >
+            <div
+              className="absolute -top-2.5 left-1/2 -translate-x-1/2"
+              style={{
+                width: 0, height: 0,
+                borderLeft: "10px solid transparent",
+                borderRight: "10px solid transparent",
+                borderBottom: "12px solid white",
+              }}
             />
-            <button
-              onClick={handleSendEmail}
-              disabled={loading || !email}
-              className="w-full bg-gold-500 text-navy-950 font-bold py-4 rounded-2xl active:scale-95 transition-transform disabled:opacity-50"
-            >
-              {loading ? "送信中..." : "コードを送信"}
-            </button>
-          </>
-        )}
+            <p className="font-rounded font-bold text-tokopuri-black text-sm">{stepChar.line}</p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
-        {/* STEP 2: コード入力 */}
-        {step === "code" && (
-          <div className="flex flex-col items-center gap-6">
-            <div className="text-center">
-              <p className="text-slate-100 font-bold text-lg">メールを確認してください</p>
-              <p className="text-slate-400 text-sm mt-1">
-                <span className="text-gold-400">{email}</span> に<br />
-                8桁のコードを送りました
+      {/* ---- フォームエリア ---- */}
+      <div className="w-full max-w-xs flex flex-col gap-4">
+        <AnimatePresence mode="wait">
+
+          {/* STEP 1: メール入力 */}
+          {step === "email" && (
+            <motion.div
+              key="email"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              className="flex flex-col gap-3"
+            >
+              <p className="font-rounded text-tokopuri-black/60 text-sm text-center">
+                メールアドレスを入力してね
               </p>
-            </div>
+              <input
+                type="email"
+                placeholder="メールアドレス"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendEmail()}
+                className="w-full bg-white border-2 border-tokopuri-yellow/40 rounded-3xl py-4 px-5 text-tokopuri-black placeholder:text-tokopuri-black/30 focus:outline-none focus:border-tokopuri-yellow font-rounded text-base text-center"
+              />
+              <button
+                onClick={handleSendEmail}
+                disabled={loading || !email}
+                className="btn-kids-primary w-full disabled:opacity-50"
+              >
+                {loading ? "おくってるよ…" : "コードをおくる"}
+              </button>
+            </motion.div>
+          )}
 
-            {/* 8桁入力 */}
-            <div className="flex gap-1.5">
-              {code.map((digit, i) => (
-                <input
-                  key={i}
-                  ref={(el) => { inputRefs.current[i] = el; }}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleCodeChange(i, e.target.value)}
-                  onKeyDown={(e) => handleCodeKeyDown(i, e)}
-                  onPaste={handlePaste}
-                  className="w-9 h-12 bg-navy-900 border border-slate-700 rounded-xl text-slate-100 text-lg font-bold text-center focus:outline-none focus:border-gold-500 focus:bg-navy-800"
-                  autoFocus={i === 0}
-                />
-              ))}
-            </div>
-
-            {loading && (
-              <p className="text-slate-400 text-sm">確認中...</p>
-            )}
-
-            <button
-              onClick={() => { setStep("email"); setCode(["","","","","","","",""]); setError(""); }}
-              className="text-slate-500 text-sm"
+          {/* STEP 2: コード入力 */}
+          {step === "code" && (
+            <motion.div
+              key="code"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              className="flex flex-col items-center gap-4"
             >
-              メールアドレスを変更する
-            </button>
-          </div>
-        )}
+              <div className="text-center">
+                <p className="font-rounded font-bold text-tokopuri-black text-base">
+                  メールをチェックしてね！
+                </p>
+                <p className="font-rounded text-tokopuri-black/50 text-sm mt-1">
+                  <span className="text-tokopuri-magenta font-bold">{email}</span> に<br />
+                  8けたのコードをおくったよ
+                </p>
+              </div>
 
-        {/* STEP 3: 成功 */}
-        {step === "success" && (
-          <div className="flex flex-col items-center gap-4">
-            <div className="text-5xl">✅</div>
-            <p className="text-slate-100 font-bold">ログイン成功！</p>
-            <p className="text-slate-400 text-sm">移動中...</p>
-          </div>
-        )}
+              {/* 8桁入力 */}
+              <div className="flex gap-1.5">
+                {code.map((digit, i) => (
+                  <input
+                    key={i}
+                    ref={(el) => { inputRefs.current[i] = el; }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleCodeChange(i, e.target.value)}
+                    onKeyDown={(e) => handleCodeKeyDown(i, e)}
+                    onPaste={handlePaste}
+                    className="w-9 h-12 bg-white border-2 border-tokopuri-yellow/40 rounded-xl text-tokopuri-black text-lg font-rounded font-black text-center focus:outline-none focus:border-tokopuri-yellow"
+                    autoFocus={i === 0}
+                  />
+                ))}
+              </div>
+
+              {loading && (
+                <p className="font-rounded text-tokopuri-black/50 text-sm">かくにん中…</p>
+              )}
+
+              <button
+                onClick={() => { setStep("email"); setCode(["","","","","","","",""]); setError(""); setStepChar(STEP_CONFIG.email); }}
+                className="font-rounded text-tokopuri-black/40 text-sm"
+              >
+                メールアドレスをかえる
+              </button>
+            </motion.div>
+          )}
+
+          {/* STEP 3: 成功 */}
+          {step === "success" && (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center gap-3"
+            >
+              <p className="font-rounded font-black text-tokopuri-black text-2xl">ログイン成功！</p>
+              <p className="font-rounded text-tokopuri-black/50 text-sm">いどうするよ…</p>
+            </motion.div>
+          )}
+
+        </AnimatePresence>
 
         {error && (
-          <p className="text-red-400 text-sm text-center">{error}</p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="font-rounded text-tokopuri-magenta text-sm text-center font-bold"
+          >
+            {error}
+          </motion.p>
         )}
       </div>
 
-      <p className="text-slate-600 text-xs text-center">
-        ログインすることで、あなた専用の<br />読書ライブラリが作成されます。
+      {/* ---- フッター ---- */}
+      <p className="font-rounded text-tokopuri-black/30 text-xs text-center">
+        ログインすることで、あなた専用の<br />ほんだながつくられます。
       </p>
+
+      {/* 裏プリンのランダム背景装飾 */}
+      <div className="fixed bottom-4 right-4 opacity-10 pointer-events-none">
+        <img src="/characters/ura_purin_back.gif" alt="" className="w-16 h-16 object-contain" />
+      </div>
     </div>
   );
 }

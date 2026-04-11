@@ -1,11 +1,11 @@
 {
-  "name": "Book Memories",
-  "short_name": "TOKO Books",
-  "description": "あなたの読書記録アプリ",
+  "name": "とこぷりブック",
+  "short_name": "とこぷりブック",
+  "description": "トコトコプリンと一緒に読んだ本を記録しよう！",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f1624",
-  "theme_color": "#0f1624",
+  "background_color": "#FFFDF0",
+  "theme_color": "#F5C842",
   "orientation": "portrait",
   "icons": [
     {
