@@ -104,7 +104,7 @@ export default function LoginPage() {
     >
       {/* ---- タイトル ---- */}
       <div className="flex flex-col items-center gap-1 text-center">
-        <p className="font-rounded font-bold text-tokopuri-magenta text-xs tracking-widest uppercase">
+        <p className="font-rounded font-bold text-tokopuri-magenta text-base tracking-widest uppercase">
           📖 とこぷりブック 📖
         </p>
         <h1 className="font-rounded font-black text-4xl text-tokopuri-black leading-tight">
