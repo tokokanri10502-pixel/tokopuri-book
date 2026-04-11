@@ -103,7 +103,7 @@ export default function LoginPage() {
       style={{ background: "linear-gradient(160deg, #FFFDF0 0%, #FFF8D6 50%, #FFFDF0 100%)" }}
     >
       {/* ---- タイトル ---- */}
-      <div className="flex flex-col items-center gap-1 text-center">
+      <div className="flex flex-col items-center gap-1 text-center mt-10">
         <p className="font-rounded font-bold text-tokopuri-magenta text-base tracking-widest uppercase">
           📖 とこぷりブック 📖
         </p>
