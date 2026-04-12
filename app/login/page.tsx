@@ -226,7 +226,7 @@ export default function LoginPage() {
               )}
 
               <button
-                onClick={() => { setStep("email"); setCode(["","","","","","","",""]); setError(""); setStepChar(STEP_CONFIG.email); }}
+                onClick={() => { setStep("email"); setCode(["","","","","","","",""]); setError(""); setStepChar(getCharConfig("email")); }}
                 className="font-rounded text-tokopuri-black/40 text-sm"
               >
                 メールアドレスをかえる

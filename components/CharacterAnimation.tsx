@@ -66,10 +66,10 @@ export function CharacterIdle() {
 
 // ---------- メイン演出モーダル ----------
 export function CharacterAnimation({ type, show, onClose }: Props) {
+  // showがtrueになるたびにGIFとセリフをランダム選択したいので show を依存に含める
   const gif = useMemo(
     () => pick(GIFS[type] ?? GIFS.wink),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [type, show]
+    [type, show] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const line = useMemo(() => {
@@ -77,8 +77,7 @@ export function CharacterAnimation({ type, show, onClose }: Props) {
     if (type === "milestone_normal")            return pick(LINES.milestone_normal);
     if (type === "milestone_ura")               return pick(LINES.milestone_ura);
     return null;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, show]);
+  }, [type, show]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 3秒後に自動クローズ
   useEffect(() => {
