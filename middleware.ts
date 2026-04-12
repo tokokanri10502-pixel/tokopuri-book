@@ -15,7 +15,13 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              // 30日間セッションを維持
+              maxAge: 60 * 60 * 24 * 30,
+              sameSite: "lax",
+              secure: true,
+            })
           );
         },
       },
