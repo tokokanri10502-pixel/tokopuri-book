@@ -17,6 +17,20 @@ const nextConfig = {
   images: {
     domains: ['books.google.com', 'books.google.co.jp'],
   },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          // カメラ・マイク・位置情報を許可
+          {
+            key: "Permissions-Policy",
+            value: "camera=*, microphone=(), geolocation=()",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withPWA(nextConfig);
