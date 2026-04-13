@@ -72,10 +72,11 @@ export default function ScanPage() {
       });
       if (data.cover_url) setImage(data.cover_url);
     } catch (err) {
-      console.error("Scan error:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("Scan error:", msg);
       setScanResult({
         title: "よみとれなかったよ…",
-        author: "もういちどためしてね",
+        author: msg,   // エラー内容を表示して診断
         publisher: "",
         cover_url: base64Image,
       });
