@@ -130,9 +130,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ...data, cover_url: coverUrl });
   } catch (error: any) {
-    console.error("Gemini Scan Error:", error?.message || error);
+    const msg = error?.message || String(error);
+    console.error("Gemini Scan Error:", msg);
     return NextResponse.json(
-      { error: "スキャンに失敗しました" },
+      { error: msg },  // 診断用：実際のエラーを返す
       { status: 500 }
     );
   }
