@@ -53,6 +53,8 @@ export async function POST(req: NextRequest) {
       model: "gemini-2.5-flash",
       generationConfig: {
         responseMimeType: "application/json",
+        // @ts-ignore — thinkingConfig は型定義に未反映だが有効なオプション
+        thinkingConfig: { thinkingBudget: 0 },
       },
     });
 
